@@ -1,0 +1,23 @@
+<section class="relativ ">
+    <div class="container mx-auto px-4 lg:px-8 flex flex-col items-center justify-center">
+      <!-- Profile Avatar -->
+      <div class="mb-8">
+        <img 
+          src="../../../../assets/imgs/image.png" 
+          alt="Profile Picture" 
+          class="w-32 h-32 rounded-full border-2 border-spotify-green-light shadow-lg"
+        />
+      </div>
+  
+      <!-- User Information -->
+      <div class="text-center space-y-4">
+        <h1 class="text-4xl font-bold tracking-tight mb-2 text-white">{{userProfile?.display_name}}</h1>
+        <p class="text-lg font-medium text-gray-300">{{userProfile?.email}}</p>
+        <p class="text-base text-gray-400">Country: {{userProfile?.country}}</p>
+        <p class="text-base text-gray-400">Subscription: {{userProfile?.product}}</p>
+  
+     
+    
+      </div>
+    </div>
+  </section>

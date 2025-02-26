@@ -1,0 +1,30 @@
+
+<aside
+    class="bg-spotify-shadeBlack text-spotify-gray h-full flex flex-col transition-all duration-250 relative rounded-lg"
+    [style.width.px]="sidebarWidth()"  #sidebar>
+    <!-- Resizer Bar -->
+    <div class="absolute top-0 right-0 h-full duration-200 rounded-full w-0.5 cursor-crosshair bg-gray-800/20 hover:bg-white"
+        (mousedown)="startResizing($event)">
+    </div>
+    @if (resizeSide == "both") {
+        <div class="absolute top-0 right-0 h-full duration-200 rounded-full w-0.5 cursor-crosshair bg-gray-800/20 hover:bg-white"
+        (mousedown)="startResizing($event)">
+    </div>
+        <div class="absolute top-0 left-0 h-full duration-200 rounded-full w-0.5 cursor-crosshair bg-gray-800/20 hover:bg-white"
+        (mousedown)="startResizing($event)">
+    </div>
+    }@else if (resizeSide == "right") {
+        <div class="absolute top-0 right-0 h-full duration-200 rounded-full w-0.5 cursor-crosshair bg-gray-800/20 hover:bg-white"
+        (mousedown)="startResizing($event)">
+    </div>
+    }@else{
+   <div class="absolute top-0 right-0 h-full duration-200 rounded-full w-0.5 cursor-crosshair bg-gray-800/20 hover:bg-white"
+        (mousedown)="startResizing($event)">
+    </div>
+    }
+ 
+
+<ng-content></ng-content>
+
+
+</aside>

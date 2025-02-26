@@ -1,0 +1,24 @@
+@if (item().description!='') {
+    @if(isExpanded()){
+        <div class="group flex justify-start items-center overflow-hidden min-w-max mb-[4px] " [routerLink]="['playlist/',item().id]" #listA>
+        
+<img [src]="item().images[0].url" class="aspect-square object-center object-contain w-14 rounded-xl" alt="">
+            
+        
+        
+         <div class="flex-col flex justify-center items-start ml-4" >
+<span class="text-white font-sm">{{item().name}}</span>
+         <span class=" text-xs flex ">Playlist <span class="scale-150   mx-0.5">·</span>{{item().owner.display_name}}</span>
+         </div>
+        </div>
+    }@else {
+        <div class="group flex justify-start items-center overflow-hidden min-w-max mb-[4px] " #listA>
+   
+<img [src]="item().images[0].url" class="aspect-square object-center object-contain w-10 rounded-xl" alt="">
+   
+        
+      
+        </div>
+    }
+
+}

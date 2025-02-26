@@ -1,0 +1,178 @@
+<footer title="big-screen" class="bg-black hidden fixed bottom-0  sm:flex justify-between items-center p-2 w-full">
+    <!-- Playing Track -->
+    <div class="flex justify-start min-w-max  space-x-4 items-center ">
+        <!-- Image -->
+         @if(currentTrack && currentTrack.album && currentTrack.album.images && currentTrack.album.images.length > 0) {
+            <img [src]="currentTrack.album.images[0]?.url || 'https://i.pravatar.cc/300'"
+            [alt]="currentTrack?.name + ' cover'" class="w-14 h-14 object-cover rounded-md" />
+         }@else {
+            <img src="https://i.pravatar.cc/300"
+            [alt]="currentTrack?.name + ' cover'" class="w-14 h-14 object-cover rounded-md" />
+         }
+       
+        <!-- Track Info -->
+        <div class="flex flex-col">
+            <span class="text-white text-sm">{{ currentTrack?.name || 'Track Name' }}</span>
+            <span class="text-spotify-gray text-xs">{{ artistsString || 'Artist Name' }}</span>
+        </div>
+        <!-- Add to Liked -->
+        <button title="Add to Liked Songs">
+            <svg data-encore-id="icon" role="img" aria-hidden="true" class="w-4 h-4" viewBox="0 0 16 16">
+                <path class="fill-spotify-gray hover:fill-white duration-200 "
+                    d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8z"></path>
+                <path class="fill-spotify-gray hover:fill-white duration-200"
+                    d="M11.75 8a.75.75 0 0 1-.75.75H8.75V11a.75.75 0 0 1-1.5 0V8.75H5a.75.75 0 0 1 0-1.5h2.25V5a.75.75 0 0 1 1.5 0v2.25H11a.75.75 0 0 1 .75.75z">
+                </path>
+            </svg>
+        </button>
+    </div>
+    <!-- player  -->
+    <div class="flex flex-col items-center justify-center w-full space-y-3">
+
+        <!-- Player Controls -->
+        <div
+            class="flex items-center justify-center space-x-4 md:space-x-8 lg:space-x-14 w-full sm:w-60 md:w-72 lg:w-80">
+            <!-- Shuffle -->
+            <button (click)="toggleShuffle()" title="Shuffle" class="text-spotify-gray  group hover:text-white transition-colors">
+                <svg data-encore-id="icon" role="img" aria-hidden="true"
+                    class="w-4 h-4 fill-current group-hover:fill-white duration-200" viewBox="0 0 16 16">
+                    <path
+                        d="M13.151.922a.75.75 0 1 0-1.06 1.06L13.109 3H11.16a3.75 3.75 0 0 0-2.873 1.34l-6.173 7.356A2.25 2.25 0 0 1 .39 12.5H0V14h.391a3.75 3.75 0 0 0 2.873-1.34l6.173-7.356a2.25 2.25 0 0 1 1.724-.804h1.947l-1.017 1.018a.75.75 0 0 0 1.06 1.06L15.98 3.75 13.15.922zM.391 3.5H0V2h.391c1.109 0 2.16.49 2.873 1.34L4.89 5.277l-.979 1.167-1.796-2.14A2.25 2.25 0 0 0 .39 3.5z">
+                    </path>
+                    <path
+                        d="m7.5 10.723.98-1.167.957 1.14a2.25 2.25 0 0 0 1.724.804h1.947l-1.017-1.018a.75.75 0 1 1 1.06-1.06l2.829 2.828-2.829 2.828a.75.75 0 1 1-1.06-1.06L13.109 13H11.16a3.75 3.75 0 0 1-2.873-1.34l-.787-.938z">
+                    </path>
+                </svg>
+            </button>
+
+            <!-- Previous Track -->
+            <button (click)="playPreviousTrack()" title="Previous Track" class="text-spotify-gray group hover:text-white transition-colors">
+                <svg data-encore-id="icon" role="img" aria-hidden="true" class="w-4 h-4" viewBox="0 0 16 16">
+                    <path class="fill-spotify-gray group-hover:fill-white duration-200 "
+                        d="M3.3 1a.7.7 0 0 1 .7.7v5.15l9.95-5.744a.7.7 0 0 1 1.05.606v12.575a.7.7 0 0 1-1.05.607L4 9.149V14.3a.7.7 0 0 1-.7.7H1.7a.7.7 0 0 1-.7-.7V1.7a.7.7 0 0 1 .7-.7h1.6z">
+                    </path>
+                </svg>
+            </button>
+
+            <!-- Play/Pause Button -->
+           <button (click)="togglePlay()" title="Play/Pause" class="bg-white p-3 rounded-full">
+                <svg *ngIf="!isPlaying" data-encore-id="icon" role="img" aria-hidden="true" class="w-4 h-4" viewBox="0 0 16 16">
+                    <path d="M3 1.713a.7.7 0 0 1 1.05-.607l10.89 6.288a.7.7 0 0 1 0 1.212L4.05 14.894A.7.7 0 0 1 3 14.288V1.713z"></path>
+                </svg>
+                <svg *ngIf="isPlaying" data-encore-id="icon" role="img" aria-hidden="true" class="w-4 h-4" viewBox="0 0 16 16">
+                    <path d="M2.7 1a.7.7 0 0 0-.7.7v12.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7H2.7zm8 0a.7.7 0 0 0-.7.7v12.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7h-2.6z"></path>
+                </svg>
+            </button>
+
+            <!-- Next Track -->
+            <button (click)="playNextTrack()" title="Next Track" class="text-spotify-gray group hover:text-white transition-colors">
+                <svg data-encore-id="icon" role="img" aria-hidden="true"
+                    class="w-4 h-4 rotate-180 fill-current group-hover:fill-white duration-200" viewBox="0 0 16 16">
+                    <path
+                        d="M3.3 1a.7.7 0 0 1 .7.7v5.15l9.95-5.744a.7.7 0 0 1 1.05.606v12.575a.7.7 0 0 1-1.05.607L4 9.149V14.3a.7.7 0 0 1-.7.7H1.7a.7.7 0 0 1-.7-.7V1.7a.7.7 0 0 1 .7-.7h1.6z">
+                    </path>
+                </svg>
+            </button>
+
+            <!-- Repeat -->
+            <button (click)="toggleRepeat()" title="Repeat" class="text-spotify-gray group hover:text-white transition-colors">
+                <svg data-encore-id="icon" role="img" aria-hidden="true"
+                    class="h-4 w-4 fill-current group-hover:fill-white duration-200" viewBox="0 0 16 16">
+                    <path
+                        d="M0 4.75A3.75 3.75 0 0 1 3.75 1h8.5A3.75 3.75 0 0 1 16 4.75v5a3.75 3.75 0 0 1-3.75 3.75H9.81l1.018 1.018a.75.75 0 1 1-1.06 1.06L6.939 12.75l2.829-2.828a.75.75 0 1 1 1.06 1.06L9.811 12h2.439a2.25 2.25 0 0 0 2.25-2.25v-5a2.25 2.25 0 0 0-2.25-2.25h-8.5A2.25 2.25 0 0 0 1.5 4.75v5A2.25 2.25 0 0 0 3.75 12H5v1.5H3.75A3.75 3.75 0 0 1 0 9.75v-5z">
+                    </path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="hidden w-full md:w-3/4 lg:w-4/6 max-w-xl mx-4 sm:flex items-center space-x-2">
+            <!-- start  -->
+            <span class="text-white text-xs">{{ formatTime(progressMs) }}</span>
+            <div #progressBar
+                class="relative cursor-pointer   group duration-200 w-full h-1 bg-spotify-gray-dark rounded-full">
+                <div class="absolute duration-200 flex items-center justify-end group-hover:bg-spotify-green-light h-full bg-white rounded-full"
+                    [style.width.%]="progressPercent()">
+                     <span
+                        class=" p-1.5 z-30  duration-200  absolute translate-x-2  group-hover:bg-white rounded-full">
+                    </span>
+                </div>
+
+            </div>
+            <!-- end  -->
+            <span class="text-white text-xs">{{ formatTime(durationMs) }}</span>
+        </div>
+    </div>
+
+
+    <!--  Controls -->
+    <div class="flex w-52 items-center justify-between space-x-2">
+
+        <button class="group ">
+            <svg data-encore-id="icon" role="img" aria-hidden="true"
+                class="w-4 h-4 fill-spotify-gray group-hover:fill-white duration-200" viewBox="0 0 16 16">
+                <path class="fill-spotify-gray group-hover:fill-spotify-green-lighter duration-200"
+                    d="M11.196 8 6 5v6l5.196-3z"></path>
+                <path class="fill-spotify-gray group-hover:fill-spotify-green-lighter duration-200"
+                    d="M15.002 1.75A1.75 1.75 0 0 0 13.252 0h-10.5a1.75 1.75 0 0 0-1.75 1.75v12.5c0 .966.783 1.75 1.75 1.75h10.5a1.75 1.75 0 0 0 1.75-1.75V1.75zm-1.75-.25a.25.25 0 0 1 .25.25v12.5a.25.25 0 0 1-.25.25h-10.5a.25.25 0 0 1-.25-.25V1.75a.25.25 0 0 1 .25-.25h10.5z">
+                </path>
+            </svg>
+        </button>
+        <!-- volium  -->
+        <div class="flex felx-row space-x-3 justify-center w-full items-center">
+            <button class="group " (click)="toggleMute()">
+                <svg data-encore-id="icon" role="presentation" aria-label="Volume high" aria-hidden="false"
+                    class="w-4 h-4 fill-spotify-gray group-hover:fill-spotify-green-lighter duration-200"
+                    viewBox="0 0 16 16">
+                    <path class="fill-spotify-gray group-hover:fill-spotify-green-lighter duration-200"
+                        d="M9.741.85a.75.75 0 0 1 .375.65v13a.75.75 0 0 1-1.125.65l-6.925-4a3.642 3.642 0 0 1-1.33-4.967 3.639 3.639 0 0 1 1.33-1.332l6.925-4a.75.75 0 0 1 .75 0zm-6.924 5.3a2.139 2.139 0 0 0 0 3.7l5.8 3.35V2.8l-5.8 3.35zm8.683 4.29V5.56a2.75 2.75 0 0 1 0 4.88z">
+                    </path>
+                    <path class="fill-spotify-gray group-hover:fill-spotify-green-lighter duration-200"
+                        d="M11.5 13.614a5.752 5.752 0 0 0 0-11.228v1.55a4.252 4.252 0 0 1 0 8.127v1.55z"></path>
+                </svg>
+            </button>
+
+            <!-- Bar -->
+            <div #volumeBar
+                class="relative cursor-pointer min-w-4  w-full  group duration-200  h-1 bg-spotify-gray-dark rounded-full">
+                <div class="absolute duration-200 flex items-center justify-end group-hover:bg-spotify-green-light h-full bg-white rounded-full"
+                    [style.width.%]="volumePercent"> <span
+                        class=" p-1.5 z-30  duration-200  absolute translate-x-2  group-hover:bg-white rounded-full">
+                    </span></div>
+
+            </div>
+
+
+        </div>
+    </div>
+
+</footer>
+<footer title="small-screen" class="bg-black p-4 flex sm:hidden justify-between items-center fixed   bottom-0 w-full">
+    <button title="home" class="flex justify-center items-center flex-col">
+        <svg data-encore-id="icon" role="img" aria-hidden="true" class="w-6 h-6" viewBox="0 0 24 24">
+            <path class="fill-spotify-gray"
+                d="M12.5 3.247a1 1 0 0 0-1 0L4 7.577V20h4.5v-6a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v6H20V7.577l-7.5-4.33zm-2-1.732a3 3 0 0 1 3 0l7.5 4.33a2 2 0 0 1 1 1.732V21a1 1 0 0 1-1 1h-6.5a1 1 0 0 1-1-1v-6h-3v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.577a2 2 0 0 1 1-1.732l7.5-4.33z">
+            </path>
+        </svg>
+        <span class="text-spotify-gray text-sm">Home</span>
+        <!-- <svg data-encore-id="icon" role="img" aria-hidden="true" class="w-6 h-6" viewBox="0 0 24 24"><path d="M13.5 1.515a3 3 0 0 0-3 0L3 5.845a2 2 0 0 0-1 1.732V21a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-6h4v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V7.577a2 2 0 0 0-1-1.732l-7.5-4.33z"></path></svg> -->
+    </button>
+    <button title="search" class="flex justify-center items-center flex-col">
+        <svg data-encore-id="icon" role="img" aria-hidden="true" class="w-6 h-6" viewBox="0 0 24 24">
+            <path class="fill-spotify-gray"
+                d="M10.533 1.27893C5.35215 1.27893 1.12598 5.41887 1.12598 10.5579C1.12598 15.697 5.35215 19.8369 10.533 19.8369C12.767 19.8369 14.8235 19.0671 16.4402 17.7794L20.7929 22.132C21.1834 22.5226 21.8166 22.5226 22.2071 22.132C22.5976 21.7415 22.5976 21.1083 22.2071 20.7178L17.8634 16.3741C19.1616 14.7849 19.94 12.7634 19.94 10.5579C19.94 5.41887 15.7138 1.27893 10.533 1.27893ZM3.12598 10.5579C3.12598 6.55226 6.42768 3.27893 10.533 3.27893C14.6383 3.27893 17.94 6.55226 17.94 10.5579C17.94 14.5636 14.6383 17.8369 10.533 17.8369C6.42768 17.8369 3.12598 14.5636 3.12598 10.5579Z">
+            </path>
+        </svg>
+        <span class="text-spotify-gray text-sm">Search</span>
+        <!-- <svg data-encore-id="icon" role="img" aria-hidden="true" class="w-6 h-6" viewBox="0 0 24 24"><path d="M15.356 10.558c0 2.623-2.16 4.75-4.823 4.75-2.664 0-4.824-2.127-4.824-4.75s2.16-4.75 4.824-4.75c2.664 0 4.823 2.127 4.823 4.75z"></path><path d="M1.126 10.558c0-5.14 4.226-9.28 9.407-9.28 5.18 0 9.407 4.14 9.407 9.28a9.157 9.157 0 0 1-2.077 5.816l4.344 4.344a1 1 0 0 1-1.414 1.414l-4.353-4.353a9.454 9.454 0 0 1-5.907 2.058c-5.18 0-9.407-4.14-9.407-9.28zm9.407-7.28c-4.105 0-7.407 3.274-7.407 7.28s3.302 7.279 7.407 7.279 7.407-3.273 7.407-7.28c0-4.005-3.302-7.278-7.407-7.278z"></path></svg> -->
+    </button>
+    <button title="library" class="flex justify-center items-center flex-col">
+        <svg data-encore-id="icon" role="img" aria-hidden="true" class="w-6 h-6" viewBox="0 0 24 24">
+            <path class="fill-spotify-gray"
+                d="M14.5 2.134a1 1 0 0 1 1 0l6 3.464a1 1 0 0 1 .5.866V21a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V3a1 1 0 0 1 .5-.866zM16 4.732V20h4V7.041l-4-2.309zM3 22a1 1 0 0 1-1-1V3a1 1 0 0 1 2 0v18a1 1 0 0 1-1 1zm6 0a1 1 0 0 1-1-1V3a1 1 0 0 1 2 0v18a1 1 0 0 1-1 1z">
+            </path>
+        </svg>
+        <span class="text-spotify-gray text-sm">Library</span>
+    </button>
+
+</footer>   
