@@ -17,9 +17,9 @@ import { SpotifyPlayerService } from '../../services/spotify-player.service';
   styleUrl: './album-page.component.css'
 })
 export class AlbumPageComponent implements OnInit {
-  
-playTrack(track: ITrack) {
-  this.player.playTrack(track.uri);
+isLiked: any;
+toggleLike() {
+throw new Error('Method not implemented.');
 }
 
   private route = inject(ActivatedRoute);
@@ -45,12 +45,13 @@ playTrack(track: ITrack) {
   async loadAlbumDetails(albumId: string): Promise<void> {
     try {
       const album = await this.spotifyService.getAlbum(albumId);
-      const { name, images } = album
+      const { name, images, uri } = album //Include the uri
       console.log(album)
       this.album = {
         name: name || "Unknown name",
         imageUrl: images[0]?.url || "https://picsum.photos/300/300",
-        artist: this.getArtistNames(album.artists)
+        artist: this.getArtistNames(album.artists),
+        uri: uri // store the uri for playing the album
       };
     } catch (error) {
       console.error('Error loading album details:', error);
@@ -62,7 +63,7 @@ playTrack(track: ITrack) {
     try {
       const { items } = await this.spotifyService.getAlbumTracks(playlistId);
       console.log(items);
-  
+
       this.tracks = items?.map(( track : ITrack) => ({
         id: track.id,
         name: track.name,
@@ -92,18 +93,25 @@ playTrack(track: ITrack) {
         uri: track.uri,
         is_local: track.is_local
       })) || [];
-  
+
       console.log(this.tracks);
     } catch (error) {
       console.error("Error loading album tracks:", error);
       // Handle error properly, such as showing a notification to the user
     }
   }
-  
+
   togglePlayPause(): void {
-    if (!this.tracks[0]) return;
+    if (!this.album?.uri) {
+        console.warn("Album URI is missing.  Cannot play.");
+        return;
+    }
     this.isPlaying = !this.isPlaying;
-    this.player.playTrack(this.tracks[0].uri);
+    this.player.playAlbum(this.album.uri);
+  }
+
+  playTrack(track: ITrack) {
+    this.player.playTrack(track.uri);
   }
 
   formatDuration(durationMs: number|undefined): string {
@@ -115,11 +123,11 @@ playTrack(track: ITrack) {
   }
 
   getArtistNames(artists:any): string {
-  
+
     return artists.map((artist:any) => artist.name).join(', ');
   }
   getArtistNamesFromTrack(track:ITrack): string {
-  
+
     return track.artists.map(artist => artist.name).join(', ');
   }
   private readonly artistIdCache = new Map<string, string>();
@@ -128,12 +136,12 @@ playTrack(track: ITrack) {
     if (this.artistIdCache.has(name)) {
       return this.artistIdCache.get(name)!;
     }
-    
+
     const artistId = album.artists?.find(artist => artist.name === name)?.id;
     if (artistId) {
       this.artistIdCache.set(name, artistId);
     }
     return artistId || '';
   }
-  
+
 }

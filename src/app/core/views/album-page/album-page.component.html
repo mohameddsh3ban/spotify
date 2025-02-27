@@ -1,5 +1,5 @@
 <!-- album-page.component.html -->
-<div *ngIf="album" class="bg-[#121212] text-white min-h-full overflow-y-auto p-6 md:p-10">
+<div *ngIf="album" class="bg-spotify-shadeBlack  min-h-full h-full text-white  overflow-y-auto p-6 md:p-10">
   <div class="flex flex-col md:flex-row items-start gap-6 md:gap-8 mb-6 md:mb-10">
     <!-- Album Cover & Details -->
     <div class="w-full md:w-72 shadow-2xl">
@@ -30,16 +30,16 @@
       </button>
 
        <!-- Like button (Optional)-->
-       <!-- Consider adding this, make the positioning appropriate
+      <!-- Consider adding this, make the positioning appropriate -->
          <button (click)="toggleLike()"
-                class="ml-4 group text-spotify-gray hover:text-white transition duration-300 p-2 rounded-full">
-            <i class="fas fa-heart" [class.text-green-500]="isLiked"></i>
-          </button> -->
+                class="ml-4 group flex justify-center items-center text-spotify-gray hover:text-white transition duration-300 p-2 rounded-full">
+            <i class="p-2 aspect-square rounded-full bg-red-600" [class.text-green-500]="isLiked"></i>
+          </button> 
     </div>
   </div>
 
-  <!-- Track List (Improved Styling) -->
-    <div class="overflow-x-auto relative overflow-y-auto rounded-lg shadow-md">  <!-- Added relative for sticky header -->
+
+    <div class="overflow-x-auto relative  rounded-lg shadow-md">  <!-- Added relative for sticky header -->
         <table class="w-full text-left">
           <thead class="text-xs text-spotify-gray uppercase bg-[#181818] top-0 sticky"> <!-- Stick header and made darker -->
                 <tr >
@@ -54,9 +54,9 @@
                 </tr>
           </thead>
 
-          <tbody>
+          <tbody class="overflow-y-auto min-h-max  ">
             <tr *ngFor="let track of tracks; let i = index"
-            class="hover:bg-[#282828] transition-colors duration-200 cursor-pointer" (click)="playTrack(track)" (click)="playTrack(track)" >
+            class="hover:bg-[#282828] transition-colors  duration-200 cursor-pointer"  (click)="playTrack(track)" >
             <td class="px-6 py-4 text-gray-400">{{ i + 1 }}</td> <!-- Make number more muted -->
 
             <td class="px-6 py-4">

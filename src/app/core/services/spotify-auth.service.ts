@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable, map } from 'rxjs'; // Import Observable and map
 import { environment } from '../../../enviroments/environment';
 
 @Injectable({
@@ -34,6 +34,9 @@ export class SpotifyAuthService {
 
   // Use a signal to manage the access token
   private accessTokenSignal = signal<string | null>(null);
+
+  // Public Observable for the access token
+
 
   // Create a computed signal that checks if the user is logged in
   public userIsLoggedIn = computed(() => !!this.accessTokenSignal());

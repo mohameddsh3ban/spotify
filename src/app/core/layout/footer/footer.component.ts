@@ -1,207 +1,322 @@
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild, AfterViewInit, inject, HostListener,signal } from '@angular/core';
-import { Subscription, fromEvent, filter, debounceTime, single } from 'rxjs';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ElementRef,
+  ViewChild,
+  AfterViewInit,
+  inject,
+  HostListener,
+  signal,
+} from '@angular/core';
+import {
+  Subscription,
+  fromEvent,
+  filter,
+  debounceTime,
+  switchMap,
+  catchError,
+  of,
+  take,
+} from 'rxjs';
 import { SpotifyPlayerService } from '../../services/spotify-player.service';
-import { NgIf, AsyncPipe } from '@angular/common';  // Import AsyncPipe
+import { NgIf, AsyncPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ITrack } from '../../model/ITrack.model';
-
-
-// Interface for the track object -  This makes things MUCH clearer and helps avoid error
+import { SpotifyService } from '../../services/spotify.service';
 
 @Component({
   selector: 'app-footer',
-  standalone: true, //  use standalone: true
-  imports: [NgIf, AsyncPipe, RouterLink], // Include AsyncPipe, RouterLink
+  standalone: true,
+  imports: [NgIf, AsyncPipe, RouterLink],
   templateUrl: './footer.component.html',
-  styleUrls: ['./footer.component.css']
+  styleUrls: ['./footer.component.css'],
 })
 export class FooterComponent implements OnInit, OnDestroy, AfterViewInit {
-toggleMute() {
-throw new Error('Method not implemented.');
-}
-
   //-----Instance Variables ----//
   private subscriptions: Subscription[] = [];
   isPlaying = false;
-  currentTrack:ITrack | null = null;  // Use theITrack interface
+  currentTrack: ITrack | null = null;
   artistsString = '';
   progressMs = 0;
   durationMs = 0;
-  volumePercent = 80;  // Initialize. Should come from service on startup
+  volumePercent = 80;
+  isMuted = false;
   isShuffle = false;
-  repeatState: 'track' | 'context' | 'off' = 'off'; // 'off', 'context', 'track'
-  progressPercent =signal(0)
+  repeatState: 'track' | 'context' | 'off' = 'off';
+  progressPercent = signal(0);
+  firstPlay = true;
 
-  @ViewChild('progressBar', { static: false }) progressBar: ElementRef | undefined;
+  @ViewChild('progressBar', { static: false }) progressBar:
+    | ElementRef
+    | undefined;
   @ViewChild('volumeBar', { static: false }) volumeBar: ElementRef | undefined;
 
+  private playerService = inject(SpotifyPlayerService);
+  private spotifyService = inject(SpotifyService);
+  private animationFrameId: number = 0; // Store the animation frame ID
 
-  private playerService = inject(SpotifyPlayerService); // using Angular dependency injection
+  //------Lifecycle Hooks-----//
+  ngOnInit(): void {
+    this.playerService.initializePlayer();
 
- //------Lifecycle Hooks-----//
- ngOnInit(): void {
-  this.playerService.initializePlayer();
-
-  // Initialize with null, but we'll update it with the last track if available
-  // No need to set currentTrack = null here since it's already null by default
-
-  this.subscriptions.push(
-    this.playerService.currentState$.subscribe(state => {
-      if (state) {
-        // Playback is active, update all track-related info
-        this.isPlaying = !state.paused;
-        this.currentTrack = state.track_window.current_track as ITrack; // Update to current track
-        this.progressMs = state.position;
-        this.durationMs = state.duration;
-        this.isShuffle = state.shuffle;
-        this.repeatState = state.repeat_mode === 0 ? 'off' : state.repeat_mode === 1 ? 'context' : 'track';
-        this.updateProgress();
-
-        // Update artists string when we have a valid track
-        if (this.currentTrack) {
-          this.artistsString = this.currentTrack.artists
-            .map(artist => artist.name)
-            .join(', ');
-        }
-      } else {
-        // Playback stopped, but retain currentTrack as the last played track
-        this.isPlaying = false;
-        this.progressMs = 0; // Reset progress since no track is playing
-        this.durationMs = 0; // Reset duration
-        this.progressPercent.set(0); // Reset progress bar
-
-        // Do NOT reset currentTrack or artistsString here
-        // They will retain the last played track's info
-      }
-    })
-  );
-
-  // Optional: Fetch initial state or last played track if needed
-  this.playerService.getCurrentState().subscribe(initialState => {
-    if (initialState && initialState.track_window?.current_track) {
-      this.currentTrack = initialState.track_window.current_track as ITrack;
-      this.artistsString = this.currentTrack.artists.map(artist => artist.name).join(', ');
-      this.progressMs = initialState.position || 0;
-      this.durationMs = initialState.duration || 0;
-      this.isPlaying = !initialState.paused;
-      this.updateProgress();
-    }
-  });
-}
-   ngAfterViewInit(): void {
-       if (this.progressBar) {
-          this.subscriptions.push(
-            fromEvent(this.progressBar.nativeElement, 'click')
-              .pipe(
-                filter((event): event is MouseEvent => event instanceof MouseEvent),
-                debounceTime(100)
-              )
-              .subscribe(event => {
-                this.seekTo(event);
+    // Load recently played AFTER player is ready
+    this.subscriptions.push(
+      this.playerService.playerReady$
+        .pipe(
+          
+          filter((ready) => ready), // Only proceed if player is ready
+          take(1),
+          switchMap(() =>
+            this.playerService.getRecentlyPlayed(1).pipe(
+              catchError((error) => {
+                console.error('Error fetching recently played:', error);
+                return of(null); // Handle error gracefully
               })
-          );
+            )
+          )
+        )
+        .subscribe((res: any) => {
+          if (res && res.items && res.items.length > 0) {
+            this.currentTrack = res.items[0].track;
+            console.log(res);
+            if (this.currentTrack) {
+              this.artistsString = this.currentTrack.artists
+                .map((artist) => artist.name)
+                .join(', ');
+            }
+            console.log(this.currentTrack);
+          }
+        })
+    );
+
+    this.subscriptions.push(
+      this.playerService.playerReady$.subscribe((ready) => {
+        if (ready) {
+          console.log('Player is ready');
+          this.playerService.transferPlayback();
+          this.playerService.getVolume().subscribe((volume) => {
+            if (volume !== null) {
+              this.volumePercent = volume * 100;
+            }
+          });
         }
+      })
+    );
 
-       if (this.volumeBar) {
-            this.subscriptions.push(
-              fromEvent(this.volumeBar.nativeElement, 'click')
-                 .pipe(
-                   filter((event): event is MouseEvent => event instanceof MouseEvent),
-                   debounceTime(100)
-                 )
-                .subscribe(event => this.setVolume(event))
-            );
-      }
+    this.subscriptions.push(
+      this.playerService.currentState$.subscribe((state) => {
+        if (state) {
+          this.isPlaying = !state.paused;
+          this.currentTrack = state.track_window.current_track as ITrack;
+          this.durationMs = state.duration; // Capture the duration here
+          this.isShuffle = state.shuffle;
+          this.repeatState =
+            state.repeat_mode === 0
+              ? 'off'
+              : state.repeat_mode === 1
+              ? 'context'
+              : 'track';
+          // Ensure progressMs does not exceed durationMs
+          this.progressMs = Math.min(state.position, this.durationMs);
+          this.updateProgress();
+          this.startProgressUpdates();
+
+          if (this.currentTrack) {
+            this.artistsString = this.currentTrack.artists
+              .map((artist) => artist.name)
+              .join(', ');
+            console.log(this.artistsString, ':name');
+          }
+        } else {
+          this.stopProgressUpdates();
+          this.isPlaying = false;
+          this.progressMs = 0;
+          this.durationMs = 0;
+          this.progressPercent.set(0);
+        }
+      })
+    );
   }
 
+  ngAfterViewInit(): void {
+    if (this.progressBar) {
+      this.subscriptions.push(
+        fromEvent(this.progressBar.nativeElement, 'click')
+          .pipe(
+            filter((event): event is MouseEvent => event instanceof MouseEvent),
+            debounceTime(100)
+          )
+          .subscribe((event) => {
+            this.seekTo(event);
+          })
+      );
+    }
 
-  ngOnDestroy(): void {
-     this.playerService.disconnectPlayer();  //IMPORTANT to prevent memory leaks
-    this.subscriptions.forEach(sub => sub.unsubscribe()); // VERY important!
+    if (this.volumeBar) {
+      this.subscriptions.push(
+        fromEvent(this.volumeBar.nativeElement, 'click')
+          .pipe(
+            filter((event): event is MouseEvent => event instanceof MouseEvent),
+            debounceTime(100)
+          )
+          .subscribe((event) => this.setVolume(event))
+      );
+    }
   }
-
 
   //----Player Methods ---- //
 
   togglePlay(): void {
-    this.playerService.togglePlay();
+    if(this.firstPlay){
+      if (this.currentTrack) {
+        this.firstPlay = false;
+          this.playerService.playTrack(this.currentTrack.uri);
+        }
+      }
+      this.playerService.togglePlay();
+    }
+   
+
+
+  playNextTrack(): void {
+    this.playerService.nextTrack();
   }
-    playNextTrack(): void {
-     this.playerService.nextTrack();
-  }
-    playPreviousTrack(): void {
+
+  playPreviousTrack(): void {
     this.playerService.previousTrack();
   }
 
-    toggleRepeat(): void {
-      // Cycle through the repeat states: 'off' -> 'context' -> 'track' -> 'off'
-      const nextState = this.repeatState === 'off' ? 'context' : this.repeatState === 'context' ? 'track' : 'off';
-        this.playerService.setRepeat(nextState).subscribe(() => {
-          this.repeatState = nextState; //update value locally after request succeed
-        });
-
-    }
-   toggleShuffle(): void {
-
-     const nextState = !this.isShuffle  //determine nex state
-
-        this.playerService.setShuffle(nextState).subscribe(() => {
-            this.isShuffle = nextState; // Update local isShuffle AFTER success.
-      });
+  toggleRepeat(): void {
+    const nextState =
+      this.repeatState === 'off'
+        ? 'context'
+        : this.repeatState === 'context'
+        ? 'track'
+        : 'off';
+    this.playerService.setRepeat(nextState);
   }
 
+  toggleShuffle(): void {
+    const nextState = !this.isShuffle;
+    this.playerService.setShuffle(nextState);
+  }
 
-   seekTo(event: MouseEvent): void {
-    if (this.progressBar && this.durationMs) {  // Make sure durationMs is valid
-      const progressBarRect = this.progressBar.nativeElement.getBoundingClientRect();
+  seekTo(event: MouseEvent): void {
+    if (this.progressBar && this.durationMs) {
+      const progressBarRect =
+        this.progressBar.nativeElement.getBoundingClientRect();
       const clickX = event.clientX - progressBarRect.left;
-      const newPositionPercent = (clickX / progressBarRect.width);
+      const newPositionPercent = clickX / progressBarRect.width;
       const newPositionMs = newPositionPercent * this.durationMs;
+
+      // set the current progressMS value
+      this.progressMs = newPositionMs;
+      // then update the player
       this.playerService.seek(newPositionMs);
+      this.updateProgress();
     }
   }
-   setVolume(event: MouseEvent): void {
+
+  setVolume(event: MouseEvent): void {
     if (this.volumeBar) {
-      const volumeBarRect = this.volumeBar.nativeElement.getBoundingClientRect();
+      const volumeBarRect =
+        this.volumeBar.nativeElement.getBoundingClientRect();
       const clickX = event.clientX - volumeBarRect.left;
-      const newVolumePercent = (clickX / volumeBarRect.width);
-      this.playerService.setVolume(newVolumePercent);  //Set Via service
-      this.volumePercent = newVolumePercent * 100;    //Update value immediately
+      const newVolumePercent = clickX / volumeBarRect.width;
+      this.playerService.setVolume(newVolumePercent);
+      this.volumePercent = newVolumePercent * 100;
     }
   }
 
   updateProgress(): void {
-    this.progressPercent.set((this.durationMs > 0) ? (this.progressMs / this.durationMs) * 100 : 0);
+    // Safely update progressPercent only if durationMs is valid
+    if (this.durationMs > 0) {
+      this.progressPercent.set(
+        Math.min(100, (this.progressMs / this.durationMs) * 100)
+      );
+    } else {
+      this.progressPercent.set(0);
+    }
   }
-   formatTime(ms: number): string {
-    if (isNaN(ms) || ms < 0) { // handle the invalid values
-       return '0:00'
+
+  formatTime(ms: number): string {
+    if (isNaN(ms) || ms < 0) {
+      return '0:00';
     }
     const seconds = Math.floor((ms / 1000) % 60);
     const minutes = Math.floor((ms / (1000 * 60)) % 60);
-     const displaySeconds = seconds < 10 ? `0${seconds}` : seconds; //for add 0 before single digit.
-
+    const displaySeconds = seconds < 10 ? `0${seconds}` : seconds;
     return `${minutes}:${displaySeconds}`;
   }
 
-
-    @HostListener('document:keydown', ['$event'])  //Key board short-cut
+  @HostListener('document:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
     if (event.code === 'Space') {
-      // Prevent scrolling when spacebar is pressed.
       event.preventDefault();
       this.togglePlay();
-    } else if (event.code === "ArrowRight") { // forward
-      this.seekRelative(5000); // Forward 5s
-
-    }else if (event.code === "ArrowLeft") { // backward
-       this.seekRelative(-5000); // backward 5s
-
+    } else if (event.code === 'ArrowRight') {
+      this.seekRelative(5000);
+    } else if (event.code === 'ArrowLeft') {
+      this.seekRelative(-5000);
     }
   }
-   seekRelative(ms: number) {
-    this.progressMs = Math.max(0, Math.min(this.progressMs + ms, this.durationMs))
-     this.playerService.seek(this.progressMs);
-   }
 
+  seekRelative(ms: number) {
+    this.progressMs = Math.max(
+      0,
+      Math.min(this.progressMs + ms, this.durationMs)
+    );
+    this.playerService.seek(this.progressMs);
+  }
+
+  //--- Progress Updates ---//
+  startProgressUpdates(): void {
+    if (!this.animationFrameId && this.isPlaying && this.durationMs > 0) {
+      this.animationFrameId = requestAnimationFrame(
+        this.updateProgressContinuously.bind(this)
+      );
+    }
+  }
+
+  stopProgressUpdates(): void {
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = 0;
+    }
+  }
+
+  updateProgressContinuously(): void {
+    if (this.isPlaying && this.durationMs > 0) {
+      // Add a check to ensure durationMs is valid
+      this.progressMs = Math.min(this.progressMs + 1000 / 60, this.durationMs); // Increment based on frame rate
+      this.updateProgress();
+    }
+    if (this.isPlaying && this.progressMs < this.durationMs) {
+      this.animationFrameId = requestAnimationFrame(
+        this.updateProgressContinuously.bind(this)
+      );
+    } else {
+      this.stopProgressUpdates();
+    }
+  }
+
+  toggleMute() {
+    if (this.isMuted) this.playerService.setVolume(this.volumePercent);
+    else {
+      this.playerService.setVolume(0);
+    }
+    this.isMuted = !this.isMuted;
+  }
+  checkIsSaved(track: any) {
+    this.spotifyService.checkUserSavedTracks([track.id]).then((response) => {
+     return response[0];
+    })
+    
+  }
+  ngOnDestroy(): void {
+    this.playerService.disconnectPlayer();
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
+    this.stopProgressUpdates();
+  }
 }

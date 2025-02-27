@@ -12,6 +12,18 @@ declare global {
         Spotify: typeof Spotify; // or Spotify: typeof SpotifyExport if you import it
     }
 }
+interface ISpotifyPlayer {
+  connect(): Promise<boolean>;
+  disconnect(): void;
+  getCurrentState(): Promise<any>; // Replace 'any' with a more specific type
+  addListener(event: string, callback: (data: any) => void): void;
+  removeListener(event: string, callback: (data: any) => void): void;
+  pause(): Promise<void>;
+  resume(): Promise<void>;
+  togglePlay(): Promise<void>;
+  seek(position: number): Promise<void>;
+  setVolume(volume: number): Promise<void>;
+}
 
 interface WebPlaybackState {
     repeat_mode: number;
@@ -32,7 +44,7 @@ export class SpotifyPlayerService {
     private authService = inject(SpotifyAuthService);
     private ngZone = inject(NgZone);
 
-    private player: any; // Ideally, use a more specific type if available
+    private player : ISpotifyPlayer | null | any; // Ideally, use a more specific type if available
     private currentState = new BehaviorSubject<WebPlaybackState | null>(null);
     private deviceId = new BehaviorSubject<string | null>(null);
     private playerReady = new BehaviorSubject<boolean>(false);
@@ -63,6 +75,7 @@ export class SpotifyPlayerService {
                 };
             });
         }
+        
     }
 
     private async createPlayer(): Promise<void> {
@@ -142,20 +155,35 @@ export class SpotifyPlayerService {
     }
 
     async playTrack(uri: string): Promise<void> {
-        const deviceId = this.deviceId.getValue();
-        if (!deviceId) {
-            this.handleError('Failed to play track', 'No device ID available.');
-            return;
-        }
-        try {
-            await this.apiService.spotifyApiCall('put', `me/player/play?device_id=${deviceId}`, { //pass device id in query
-                body: { uris: [uri] }
-            });
-
-        } catch (error) {
-            this.handleError('Failed to play track', error);
-        }
+        await this.play(uri);
     }
+
+    async playAlbum(albumUri: string): Promise<void> {
+        await this.play(albumUri, "context_uri");
+        
+    }
+
+    private async play(uri: string, type: string = "uris"): Promise<void> {
+      const deviceId = this.deviceId.getValue();
+      if (!deviceId) {
+          this.handleError('Failed to play track', 'No device ID available.');
+          return;
+      }
+
+      const body: any = {};
+      if(type === "context_uri") {
+          body.context_uri = uri;
+      }
+      else {
+          body.uris = [uri];
+      }
+
+      try {
+          await this.apiService.spotifyApiCall('put', `me/player/play?device_id=${deviceId}`, {  body: body });
+      } catch (error) {
+          this.handleError('Failed to play track', error);
+      }
+  }
 
     async seek(positionMs: number): Promise<void> {
         try {
@@ -181,52 +209,30 @@ export class SpotifyPlayerService {
             this.handleError('Volume change failed', error);
         }
     }
+    pauseTrack(): void {
+        this.apiService.spotifyApiCall('put', 'me/player/pause');
+    }
 
     //Player Control Next Track
     nextTrack(): void {
-        this.spotifyApiCallWithoutBody('post', `me/player/next`).subscribe({
-            next: () => {
-                // success callback(optional)
-            },
-            error: (error) => {
-                this.handleError('Failed to Skip Next track', error);
-            }
-        });
+
+        this.apiService.spotifyApiCall('post', 'me/player/next');
     }
     //Player Control previous track
     previousTrack(): void {
-        this.spotifyApiCallWithoutBody('post', `me/player/previous`).subscribe({
-            next: () => {
-                // success callback(optional)
-            },
-            error: (error) => {
-                this.handleError('Failed to Skip Previous track', error);
-            }
-        });
+      
+   this.apiService.spotifyApiCall('post', 'me/player/previous');
     }
 
     //Player set shuffle
-    setShuffle(state: boolean): Observable<any> {
-        return this.spotifyApiCallWithoutBody('put', `me/player/shuffle?state=${state}`);
+    setShuffle(state: boolean) {
+       this.apiService.spotifyApiCall('put', `me/player/shuffle?state=${state}`);
+        
     }
     //Plyer set Repeat
-    setRepeat(state: string): Observable<any> {
-
-        return this.spotifyApiCallWithoutBody('put', `me/player/repeat?state=${state}`);
+    setRepeat(state: string) {
+       this.apiService.spotifyApiCall('put', `me/player/repeat?state=${state}`);
     }
-
-    private spotifyApiCallWithoutBody(method: any, url: string): Observable<any> {
-        const deviceId = this.deviceId.getValue();
-        const fullURL = deviceId ? `${url}&device_id=${deviceId}` : url;
-
-        return from(this.apiService.spotifyApiCall(method, fullURL)).pipe(
-            catchError((error) => {
-                this.handleError(`Spotify API call failed for ${url}`, error);
-                throw error; // Re-throw to allow the component to handle it as well
-            })
-        );
-    }
-
 
     async transferPlayback(): Promise<void> {
         const deviceId = this.deviceId.getValue();
@@ -254,6 +260,16 @@ export class SpotifyPlayerService {
           observer.next(state);
           observer.complete();
         });
+      });
+    }
+    getRecentlyPlayed(limit?: number): Observable<any> {
+        if(!limit) limit = 10
+      return new Observable(observer => {
+        this.apiService.spotifyApiCall('get', `me/player/recently-played?limit=${limit}`).then((state: any) => {
+          observer.next(state);
+          observer.complete();
+        });
+
       });
     }
     // Cleanup
