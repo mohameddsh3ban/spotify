@@ -1,97 +1,71 @@
 <!-- album-page.component.html -->
-<div *ngIf="album" class="bg-spotify-shadeBlack  min-h-full h-full text-white  overflow-y-auto p-6 md:p-10">
-  <div class="flex flex-col md:flex-row items-start gap-6 md:gap-8 mb-6 md:mb-10">
-    <!-- Album Cover & Details -->
-    <div class="w-full md:w-72 shadow-2xl">
-      <img [src]="album.imageUrl" alt="{{ album.name }}" class="rounded-lg aspect-square object-cover w-full" />  <!-- Increased size & shadow -->
-    </div>
+<div class="bg-[#121212] text-white min-h-full h-full overflow-y-auto p-6 md:p-8" *ngIf="album">
+    <div class="flex flex-col md:flex-row items-center justify-start md:items-start gap-6 mb-6 md:mb-8">
+        <div class="w-full md:w-64 shadow-2xl">
+            <img [src]="album.imageUrl" alt="{{ album.name }}" class="rounded-md aspect-square object-cover" />
+        </div>
 
-    <div class="w-full flex-grow">  <!-- Added flex-grow for better layout -->
-      <h1 class="text-4xl md:text-5xl font-extrabold mb-3">{{ album.name }}</h1>  <!-- Increased size & font weight -->
-       <p class="text-lg text-spotify-gray mb-1">
-        <!-- Make artist's name clickable. Also more prominent  -->
-         <!-- <a [routerLink]="['/artist']" class="hover:underline text-white font-semibold">{{ getArtistNames(album.artist) }}</a> -->
-         <ng-container *ngFor="let artist of album.artists; let isLast = last">
-          <a [routerLink]="['/artist', artist.id]" class="hover:underline text-spotify-gray">{{ artist.name }}</a>
-            <span *ngIf="!isLast" class="text-spotify-gray">, </span>
-          </ng-container>
-      </p>
-      <p class="text-sm text-gray-500 mb-4">
-        {{ album.release_date | date:'longDate' }} • {{ tracks.length }} tracks  <!-- Show Release Date, & combine-->
-      </p>
-
-      <!-- Play/Pause Button (Enhanced) -->
-      <button (click)="togglePlayPause()" class="group bg-green-500 hover:bg-green-600  rounded-full flex items-center justify-center  transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75">
-        <!-- added padding to icon, padding on text, hover color changes. Added Focus State, Changed to Full Round. -->
-        <span class="sr-only">{{ isPlaying ? 'Pause' : 'Play' }}</span>  <!-- For accessibility -->
-        <i class="fas fa-play text-black group-hover:text-black w-12 h-12 flex items-center justify-center text-lg" *ngIf="!isPlaying"></i>  <!-- Icon -->
-        <i class="fas fa-pause text-black group-hover:text-black w-12 h-12 flex items-center justify-center text-lg" *ngIf="isPlaying"></i>   <!-- Icon -->
-
-      </button>
-
-       <!-- Like button (Optional)-->
-      <!-- Consider adding this, make the positioning appropriate -->
-         <button (click)="toggleLike()"
-                class="ml-4 group flex justify-center items-center text-spotify-gray hover:text-white transition duration-300 p-2 rounded-full">
-            <i class="p-2 aspect-square rounded-full bg-red-600" [class.text-green-500]="isLiked"></i>
-          </button> 
-    </div>
-  </div>
-
-
-    <div class="overflow-x-auto relative  rounded-lg shadow-md">  <!-- Added relative for sticky header -->
-        <table class="w-full text-left">
-          <thead class="text-xs text-spotify-gray uppercase bg-[#181818] top-0 sticky"> <!-- Stick header and made darker -->
-                <tr >
-                <th scope="col" class="px-6 py-4 font-medium">#</th>  <!-- Increase padding-->
-                <th scope="col" class="px-6 py-4 font-medium">Title</th>
-                <th scope="col" class="px-6 py-4 font-medium">Artist</th>
-                <th scope="col" class="px-6 py-4 font-medium">
-                  <!-- Use a proper time icon-->
-                    <i class="far fa-clock"></i>
-                <span class="sr-only">Duration</span>
-                </th>
-                </tr>
-          </thead>
-
-          <tbody class="overflow-y-auto min-h-max  ">
-            <tr *ngFor="let track of tracks; let i = index"
-            class="hover:bg-[#282828] transition-colors  duration-200 cursor-pointer"  (click)="playTrack(track)" >
-            <td class="px-6 py-4 text-gray-400">{{ i + 1 }}</td> <!-- Make number more muted -->
-
-            <td class="px-6 py-4">
-               <!-- Added wrapping div and used text-truncate-->
-               <div class="flex items-center"> <!-- wrap title in flex-->
-                    <div class="flex-grow min-w-0"> <!-- Added container for overflow control.  Key for text-truncate to work -->
-                        <span class="text-white text-truncate block">{{ track.name }}</span> <!-- Use a block level span for text-truncate -->
-                        <!-- Add EXPLICIT tag, if you have the data-->
-                        <!-- <span *ngIf="track.explicit"
-                              class="ml-2 bg-gray-700 text-gray-300 px-2 py-0.5 rounded-sm text-xs font-medium">E</span>-->
-                    </div>
-
-                 </div>
-                </td>
-            <!-- make the artists name linkable -->
-                <td class="px-6 py-4">
-                  <ng-container *ngFor="let artist of track.artists; let isLast = last">
-                  <a [routerLink]="['/artist', artist.id]" class="hover:underline text-spotify-gray">{{ artist.name }}</a>
+        <div class="w-full flex flex-col items-center md:items-start">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-2">{{ album.name }}</h1>
+            <p class="text-lg text-spotify-gray mb-1">
+                <!-- Artist names as clickable links -->
+                <ng-container *ngFor="let artist of album.artists; let isLast = last">
+                    <a [routerLink]="['/artist', artist.id]" class="hover:underline text-white">{{ artist.name }}</a>
                     <span *ngIf="!isLast" class="text-spotify-gray">, </span>
-                  </ng-container>
-                </td>
-            <td class="px-6 py-4 text-spotify-gray">{{ formatDuration(track.duration_ms) }}</td>
-            </tr>
-          </tbody>
-      </table>
+                </ng-container>
+            </p>
+            <p class="text-sm text-gray-500 mb-4">
+                {{ album.release_date | date:'longDate' }} • {{ tracks.length }} tracks
+            </p>
+
+             <div class="flex items-center space-x-4 mb-4">  <!-- Added wrapper for spacing -->
+                  <!-- Play/Pause Button (Spotify-style) -->
+                  <button (click)="togglePlayPause()" class="group bg-green-500 aspect-square  hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"> <!-- More padding, rounded full -->
+                      <span class="sr-only">{{ isPlaying ? 'Pause' : 'Play' }}</span>  <!-- For accessibility -->
+                      <i class="fas fa-play text-black group-hover:text-black inline-block" *ngIf="!isPlaying"></i>  <!-- Icon -->
+                      <i class="fas fa-pause text-black group-hover:text-black  inline-block" *ngIf="isPlaying"></i>   <!-- Icon -->
+                  </button>
+              </div>
+
+
+        </div>
     </div>
 
-     <!-- No Track message or play button-->
-    <div *ngIf="tracks.length === 0" class="text-center mt-6">
-         <p class="text-gray-400">No tracks available for this album.</p>
+    <!-- Track List -->
+    <div class="overflow-x-auto rounded-md shadow-md">
+        <table class="w-full text-left">
+            <thead class="text-sm text-spotify-gray uppercase bg-[#181818] sticky top-0 z-10">
+                <tr>
+                    <th scope="col" class="px-4 py-3 font-medium">#</th>
+                     <th scope="col" class="px-4 py-3 font-medium">Track</th>
+                    <th scope="col" class="px-4 py-3 font-medium">Title</th>
+                    <th scope="col" class="px-4 py-3 font-medium">Artist</th>
+                    <th scope="col" class="px-4 py-3 font-medium"></th>  <!-- Duration Column -->
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let track of tracks; let i = index"
+                    class="hover:bg-[#282828] transition-colors w-full duration-200 cursor-pointer" (click)="playTrack(track)"
+                    [class.bg-green-800]="isCurrentlyPlaying(track)"> <!-- Highlight playing track -->
+                    <td class="px-4 py-3 text-gray-400">{{ i + 1 }}</td>
+                     <td class="px-4 py-3">
+                        <img class="w-10 h-10 rounded object-cover" [src]="album.imageUrl" alt="{{ track.name }}" />
+                    </td>
+                    <td class="px-4 py-3">{{ track.name }}</td>
+                    <td class="px-4 py-3">
+                        <!-- Display artists using ngFor -->
+                        <ng-container *ngFor="let artist of track.artists; let isLast = last">
+                            <a [routerLink]="['/artist', artist.id]" class="hover:underline text-white">{{ artist.name }}</a>
+                            <span *ngIf="!isLast" class="text-spotify-gray">, </span>
+                        </ng-container>
+                    </td>
+                     <td class="px-4 py-3 text-spotify-gray">{{ formatDuration(track.duration_ms) }}</td> <!-- Show track duration-->
+                </tr>
+            </tbody>
+        </table>
     </div>
-
 </div>
 
-  <!-- Loading Spinner -->
 <div *ngIf="!album" class="bg-[#121212] text-white min-h-screen p-6 md:p-8 flex items-center justify-center">
-  <app-loading></app-loading>
+    <app-loading></app-loading>
 </div>

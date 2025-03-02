@@ -28,7 +28,7 @@ import { SpotifyService } from '../../services/spotify.service';
 @Component({
   selector: 'app-footer',
   standalone: true,
-  imports: [NgIf, AsyncPipe, RouterLink],
+  imports: [NgIf, RouterLink],
   templateUrl: './footer.component.html',
   styleUrls: ['./footer.component.css'],
 })
@@ -46,6 +46,7 @@ export class FooterComponent implements OnInit, OnDestroy, AfterViewInit {
   repeatState: 'track' | 'context' | 'off' = 'off';
   progressPercent = signal(0);
   firstPlay = true;
+  isLiked = false;
 
   @ViewChild('progressBar', { static: false }) progressBar:
     | ElementRef
@@ -64,7 +65,6 @@ export class FooterComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.push(
       this.playerService.playerReady$
         .pipe(
-          
           filter((ready) => ready), // Only proceed if player is ready
           take(1),
           switchMap(() =>
@@ -86,6 +86,7 @@ export class FooterComponent implements OnInit, OnDestroy, AfterViewInit {
                 .join(', ');
             }
             console.log(this.currentTrack);
+            if (this.currentTrack) this.checkIsSaved(this.currentTrack?.id);
           }
         })
     );
@@ -168,16 +169,14 @@ export class FooterComponent implements OnInit, OnDestroy, AfterViewInit {
   //----Player Methods ---- //
 
   togglePlay(): void {
-    if(this.firstPlay){
+    if (this.firstPlay) {
       if (this.currentTrack) {
         this.firstPlay = false;
-          this.playerService.playTrack(this.currentTrack.uri);
-        }
+        this.playerService.playTrack(this.currentTrack.uri);
       }
-      this.playerService.togglePlay();
     }
-   
-
+    this.playerService.togglePlay();
+  }
 
   playNextTrack(): void {
     this.playerService.nextTrack();
@@ -250,17 +249,17 @@ export class FooterComponent implements OnInit, OnDestroy, AfterViewInit {
     return `${minutes}:${displaySeconds}`;
   }
 
-  @HostListener('document:keydown', ['$event'])
-  handleKeyboardEvent(event: KeyboardEvent) {
-    if (event.code === 'Space') {
-      event.preventDefault();
-      this.togglePlay();
-    } else if (event.code === 'ArrowRight') {
-      this.seekRelative(5000);
-    } else if (event.code === 'ArrowLeft') {
-      this.seekRelative(-5000);
-    }
-  }
+  // @HostListener('document:keydown', ['$event'])
+  // handleKeyboardEvent(event: KeyboardEvent) {
+  //   if (event.code === 'Space') {
+  //     event.preventDefault();
+  //     this.togglePlay();
+  //   } else if (event.code === 'ArrowRight') {
+  //     this.seekRelative(5000);
+  //   } else if (event.code === 'ArrowLeft') {
+  //     this.seekRelative(-5000);
+  //   }
+  // }
 
   seekRelative(ms: number) {
     this.progressMs = Math.max(
@@ -308,12 +307,25 @@ export class FooterComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     this.isMuted = !this.isMuted;
   }
-  checkIsSaved(track: any) {
-    this.spotifyService.checkUserSavedTracks([track.id]).then((response) => {
-     return response[0];
-    })
-    
+  async checkIsSaved(trackId: string) {
+    const res = this.spotifyService.checkUserSavedTracks([trackId]);
+    res.then((res) => {
+      this.isLiked = res[0];
+    });
   }
+  ToggleLikeTrack() {
+    if (this.currentTrack) {
+      if (!this.isLiked) {
+        this.spotifyService.saveTracksForCurrentUser([this.currentTrack?.id]);
+        console.log('liked');
+      } else {
+        this.spotifyService.removeTracksForCurrentUser([this.currentTrack.id]);
+        console.log('unliked');
+      }
+    }
+    this.isLiked = !this.isLiked;
+  }
+
   ngOnDestroy(): void {
     this.playerService.disconnectPlayer();
     this.subscriptions.forEach((sub) => sub.unsubscribe());

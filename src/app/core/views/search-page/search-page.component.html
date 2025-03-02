@@ -1,0 +1,121 @@
+@if(searchResults.length === 0 ){
+<div class="text-gray-400 text-center h-full">
+  <app-loading></app-loading>
+</div>
+}@else {
+<div class="grid grid-cols-1 min-h-max  overflow-y-auto sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+  @switch (currentType) {
+  @case ('album') {
+
+  @for( result of searchResults ; track $index ){
+  @if(result){
+  <div class="bg-[#181818] rounded-lg shadow-md overflow-hidden cursor-pointer" [routerLink]="['/album', result.id]">
+    <!-- Adjust based on your search result structure -->
+    @if(result.images){
+    <img [src]="result.images[0].url" alt="{{ result.name }}" class="w-full h-48 object-cover">
+    }@else {
+    <img src="https://random-image-pepebigotes.vercel.app/api/random-image" alt="{{ result.name }}"
+      class="w-full h-48 object-cover">
+    }
+
+
+    <div class="p-4">
+      <h3 class="text-lg font-semibold mb-2">{{ result.name }}</h3>
+
+
+      <!-- Example Navigation (adjust based on your routes) -->
+      @for (artist of result.artists; track $index) {
+      <a [routerLink]="['/artist', artist.name]"
+        class="inline-block mt-2 text-blue-500 hover:underline">{{artist.name}}</a>
+      }
+
+      <!-- <button *ngIf="result.type === 'song'" (click)="playSong(result)" class="inline-block mt-2 bg-green-500 text-white py-2 px-4 rounded-full hover:bg-green-600">Play Song</button> -->
+
+    </div>
+  </div>
+  }
+
+  }
+
+
+
+
+  }
+  @case ('track') {
+
+
+
+  @for( result of searchResults ; track $index ){
+  @if(result){
+  <div class="bg-[#181818] rounded-lg shadow-md overflow-hidden cursor-pointer" [routerLink]="['/track', result.id]">
+    <!-- Adjust based on your search result structure -->
+    @if(result.album && result.album.images && result.album.images.length > 0){
+    <img [src]="result.album.images[0].url" alt="{{ result.name }}" class="w-full h-48 object-cover">
+    }@else {
+    <img src="https://random-image-pepebigotes.vercel.app/api/random-image" alt="{{ result.name }}"
+      class="w-full h-48 object-cover">
+    }
+
+
+    <div class="p-4">
+      <h3 class="text-lg font-semibold mb-2">{{ result.name }}</h3>
+
+
+      <!-- Example Navigation (adjust based on your routes) -->
+      @for (artist of result.artists; track $index) {
+      <a [routerLink]="['/artist', artist.name]"
+        class="inline-block mt-2 text-blue-500 hover:underline">{{artist.name}}</a>
+      }
+
+      <!-- <button *ngIf="result.type === 'song'" (click)="playSong(result)" class="inline-block mt-2 bg-green-500 text-white py-2 px-4 rounded-full hover:bg-green-600">Play Song</button> -->
+
+    </div>
+  </div>
+  }
+
+  }
+
+
+
+
+  }
+
+  @case ('playlist') {
+
+
+  @for( result of searchResults ; track $index ){
+  @if(result){
+  <div class="bg-[#181818] rounded-lg shadow-md overflow-hidden cursor-pointer" [routerLink]="['/playlist', result.id]">
+    <!-- Adjust based on your search result structure -->
+    @if(result.images[0]){
+    <img [src]="result.images[0].url" alt="{{ result.name }}" class="w-full h-48 object-cover">
+    }@else {
+    <img src="https://random-image-pepebigotes.vercel.app/api/random-image" alt="{{ result.name }}"
+      class="w-full h-48 object-cover">
+    }
+
+
+    <div class="p-4">
+      <h3 class="text-lg font-semibold mb-2">{{ result.name }}</h3>
+
+
+      <!-- Example Navigation (adjust based on your routes) -->
+      @for (artist of result.artists; track $index) {
+      <a [routerLink]="['/artist', artist.name]"
+        class="inline-block mt-2 text-blue-500 hover:underline">{{artist.name}}</a>
+      }
+
+      <!-- <button *ngIf="result.type === 'song'" (click)="playSong(result)" class="inline-block mt-2 bg-green-500 text-white py-2 px-4 rounded-full hover:bg-green-600">Play Song</button> -->
+
+    </div>
+  </div>
+  }
+
+  }
+
+
+
+  }
+  }
+</div>
+}

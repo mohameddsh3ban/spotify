@@ -1,4 +1,4 @@
-export interface IPlaylistItem {
+export interface IPlaylist {
   collaborative: boolean; // Whether the playlist is collaborative
   description: string; // Description of the playlist
   external_urls: ExternalUrls; // External URLs for the playlist (e.g., Spotify link)
@@ -13,6 +13,7 @@ export interface IPlaylistItem {
   tracks: Tracks; // Information about the tracks in the playlist
   type: string; // Type of object ("playlist" in this case)
   uri: string; // Spotify URI for the playlist
+  imageUrl?: string;
 }
 
 interface ExternalUrls {

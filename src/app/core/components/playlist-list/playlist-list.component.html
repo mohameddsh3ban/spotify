@@ -2,8 +2,8 @@
     @for (playlist of playlists(); track $index) {
     <div class="w-48 shrink-0 rounded-md shadow-md flex justify-start items-end backdrop-blur-sm hover:scale-105 cursor-pointer transition-transform duration-200"
         [routerLink]="['/playlist', playlist.id]">
-        @if(playlist.images){
-        <img [src]="playlist.images[0].url" alt="{{ playlist.name }}"
+        @if(playlist.imageUrl){
+        <img [src]="playlist.imageUrl" alt="{{ playlist.name }}"
             class="w-full aspect-square h-48 object-cover rounded-xl" />
         }@else {
         <img src="https://random-image-pepebigotes.vercel.app/api/random-image" alt="{{ playlist.name }}"

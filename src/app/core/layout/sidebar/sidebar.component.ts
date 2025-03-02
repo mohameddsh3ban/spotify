@@ -97,8 +97,12 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
       event.preventDefault(); // Prevent text selection during drag
       const rect = this.sidebarElement.nativeElement.getBoundingClientRect();
       let newWidth = event.clientX - rect.left; // Use clientX relative to sidebar
+      if(newWidth<200){
+        newWidth = 80
+      }
       // Clamp the width
       newWidth = Math.max(this.minWidth, Math.min(newWidth, this.maxWidth));
+      
       this.sidebarWidth.set(newWidth);
     }
   };

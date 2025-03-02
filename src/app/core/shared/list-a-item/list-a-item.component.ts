@@ -1,5 +1,5 @@
 import { Component, ElementRef, input, signal, ViewChild, viewChild } from '@angular/core';
-import { IPlaylistItem } from '../../model/IPlaylistItem.model';
+import { IPlaylist } from '../../model/IPlaylist.model';
 import { fromEvent, throttleTime } from 'rxjs';
 import { RouterLink } from '@angular/router';
 
@@ -10,7 +10,7 @@ import { RouterLink } from '@angular/router';
   styleUrl: './list-a-item.component.css'
 })
 export class ListAItemComponent {
-   item = input.required<IPlaylistItem>() 
+   item = input.required<IPlaylist>() 
 isExpanded = input.required()
     // {
     // collaborative: false,

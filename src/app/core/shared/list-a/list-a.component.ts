@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, Input, signal, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { ListAItemComponent } from "../list-a-item/list-a-item.component";
 import { SpotifyService } from '../../services/spotify.service';
-import { IPlaylistItem } from '../../model/IPlaylistItem.model';
+import { IPlaylist } from '../../model/IPlaylist.model';
 import { SpotifyPlaylistService } from '../../services/spotify-playlist.service';
 
 @Component({
@@ -14,7 +14,7 @@ export class ListAComponent implements AfterViewInit, OnDestroy {
   @ViewChild('listA', { static: false }) listAElm!: ElementRef<HTMLDivElement>;
 
   private spotifyPlaylistSrv = inject(SpotifyPlaylistService);
-  @Input() items = signal<IPlaylistItem[]>([]);
+  @Input() items = signal<IPlaylist[]>([]);
   isExpanded = signal(true);
 
   private resizeObserver: ResizeObserver | undefined;

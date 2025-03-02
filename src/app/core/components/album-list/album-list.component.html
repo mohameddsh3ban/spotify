@@ -1,31 +1,56 @@
-<div class="flex flex-row overflow-x-auto  overflow-y-hidden  gap-4 p-2">
-  @for( album of albums() ; track $index){
-    <div  [routerLink]="['/album',album.id]" class="w-48 shrink-0 rounded-md shadow-md   flex  cursor-pointer justify-start items-end backdrop-blur-sm hover:scale-105 transition-transform duration-200">
-      <img [src]="album.imageUrl" alt="{{ album.name }}"   class="w-full aspect-square h-48 object-cover rounded-xl" />
-      <div class="p-4 absolute  ">
-     
-        <h3 class="text-lg font-semibold text-white truncate max-w-40 ">{{ album.name  }}</h3>
-        @if(album.artist != album.name ){
-          <p class="text-sm text-spotify-gray truncate max-w-36">{{ album.artist }}</p>
-        }
-        
-      </div>
-      <div class=" absolute w-full hover:bg-slate-950 hover:bg-opacity-20 group duration-200 overflow-hidden h-full">
-        <div class="flex p-2 h-full justify-end items-end">
-   <!-- play  -->
-   <button title="Play/Pause" class="bg-white p-3   translate-x-12 group-hover:translate-x-0  duration-300 rounded-full">
-    <svg data-encore-id="icon" role="img" aria-hidden="true" class="w-4 h-4" viewBox="0 0 16 16">
-        <path
-            d="M3 1.713a.7.7 0 0 1 1.05-.607l10.89 6.288a.7.7 0 0 1 0 1.212L4.05 14.894A.7.7 0 0 1 3 14.288V1.713z">
-        </path>
-    </svg>
-</button>
-        </div>
-
-      </div>
-      
+<div class="flex flex-row overflow-x-auto overflow-y-hidden gap-4 p-2">
+  @for (album of albums(); track $index) {
+  <div
+    class="w-48 shrink-0 rounded-md shadow-md flex justify-start items-end backdrop-blur-sm hover:scale-105 cursor-pointer transition-transform duration-200"
+    [routerLink]="['/album', album.id]"
+  >
+    @if(album.imageUrl){
+    <img
+      [src]="album.imageUrl"
+      alt="{{ album.name }}"
+      class="w-full aspect-square h-48 object-cover rounded-xl"
+    />
+    }
+    @else {
+    <img
+      src="https://random-image-pepebigotes.vercel.app/api/random-image"
+      alt="{{ album.name }}"
+      class="w-full aspect-square h-48 object-cover rounded-xl"
+    />
+    }
+    <div class="p-4 absolute overflow-hidden">
+      <h3 class="text-lg font-semibold text-white truncate max-w-40">
+        {{ album.name }}
+      </h3>
+      @if(album.artist != album.name ){
+        <p class="text-sm text-spotify-gray truncate max-w-32">
+          {{ album.artist }}
+        </p>
+      }
     </div>
+    <div
+      class="absolute w-full hover:bg-slate-950 hover:bg-opacity-20 group duration-200 overflow-hidden h-full"
+    >
+      <div class="flex p-2 h-full justify-end items-end">
+        <!-- play -->
+        <button
+          title="Play/Pause"
+          class="bg-white p-3 translate-x-12 group-hover:translate-x-0 duration-300 rounded-full"
+        >
+          <svg
+            data-encore-id="icon"
+            role="img"
+            aria-hidden="true"
+            class="w-4 h-4"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M3 1.713a.7.7 0 0 1 1.05-.607l10.89 6.288a.7.7 0 0 1 0 1.212L4.05 14.894A.7.7 0 0 1 3 14.288V1.713z"
+            ></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
   }
-    
- 
-  </div>   
+</div>

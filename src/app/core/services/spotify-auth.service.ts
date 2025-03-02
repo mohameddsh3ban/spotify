@@ -18,6 +18,7 @@ export class SpotifyAuthService {
     'user-read-email',
     'user-top-read',
     'user-library-read',
+    'user-library-modify',
     'playlist-modify-public',
     'playlist-modify-private',
     // 'web-playback-sdk', // Required for Web Playback SDK

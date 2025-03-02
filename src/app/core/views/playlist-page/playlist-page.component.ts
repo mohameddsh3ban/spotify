@@ -1,11 +1,15 @@
+// playlist-page.component.ts
 import { Component, inject, OnDestroy, OnInit, Signal, signal } from '@angular/core';
 import { ITrack } from '../../model/ITrack.model';
 import { ActivatedRoute } from '@angular/router';
 import { SpotifyPlaylistService } from '../../services/spotify-playlist.service';
-import { IPlaylistItem } from '../../model/IPlaylistItem.model';
+import { IPlaylist } from '../../model/IPlaylist.model';
 import { NgFor, NgIf } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { LoadingComponent } from "../../components/loading/loading.component"; // Import Subscription
+import { LoadingComponent } from "../../components/loading/loading.component";
+import { SpotifyPlayerService } from '../../services/spotify-player.service'; // Import SpotifyPlayerService
+import { SpotifyService } from '../../services/spotify.service';
+
 
 @Component({
   selector: 'app-playlist-page',
@@ -14,8 +18,7 @@ import { LoadingComponent } from "../../components/loading/loading.component"; /
   templateUrl: './playlist-page.component.html',
   styleUrl: './playlist-page.component.css'
 })
-export class PlaylistPageComponent implements OnInit, OnDestroy { // Implement OnDestroy
-
+export class PlaylistPageComponent implements OnInit, OnDestroy {
 
   formatDuration(duration_ms: number): string {
     const minutes = Math.floor(duration_ms / 60000);
@@ -26,31 +29,37 @@ export class PlaylistPageComponent implements OnInit, OnDestroy { // Implement O
   private route = inject(ActivatedRoute);
   private spotifyService = inject(SpotifyPlaylistService);
 
+  private player = inject(SpotifyPlayerService) // Inject SpotifyPlayerService
+
   playlistId: string | null = null;
-  playlist: IPlaylistItem | undefined;
+  playlist: IPlaylist | undefined;
   tracks: ITrack[] = [];
   isPlaying: boolean = false;
-
-  private paramMapSubscription: Subscription | undefined; // Store the subscription
+  currentTrackUri: string | null = null; // Track the currently playing track
+  private paramMapSubscription: Subscription | undefined;
 
   ngOnInit(): void {
     this.paramMapSubscription = this.route.paramMap.subscribe(params => {
       const playlistId = params.get('id');
       if (playlistId) {
         this.playlistId = playlistId;
-        this.loadPlaylistData(playlistId); // Call the data loading function
+        this.loadPlaylistData(playlistId).then(() => {
+          this.setupQueue(this.tracks);
+          console.log(this.tracks)
+        });
+       
+
       } else {
         console.error('Playlist ID is missing.');
       }
     });
   }
 
-  ngOnDestroy(): void { // Implement OnDestroy
+  ngOnDestroy(): void {
     if (this.paramMapSubscription) {
-      this.paramMapSubscription.unsubscribe(); // Unsubscribe to prevent memory leaks
+      this.paramMapSubscription.unsubscribe();
     }
   }
-
 
   async loadPlaylistData(playlistId: string): Promise<void> {
     this.playlist = undefined
@@ -61,7 +70,6 @@ export class PlaylistPageComponent implements OnInit, OnDestroy { // Implement O
       ]);
     } catch (error) {
       console.error('Error loading playlist data:', error);
-      // Handle error (e.g., display an error message)
     }
   }
 
@@ -71,14 +79,13 @@ export class PlaylistPageComponent implements OnInit, OnDestroy { // Implement O
       this.playlist = playlist;
     } catch (error) {
       console.error('Error loading playlist details:', error);
-      // Handle error (e.g., display an error message)
     }
   }
 
   async loadPlaylistTracks(playlistId: string): Promise<void> {
     try {
       const { items } = await this.spotifyService.getPlaylistItems(playlistId, {
-        fields: 'items(track(id,name,artists(name),album(name,images(url))),total)', // Include URL in images
+        fields: 'items(track(id,name,artists(id,name),album(name,images(url)),uri))', // Add uri to fields
         limit: 50
       });
 
@@ -88,23 +95,46 @@ export class PlaylistPageComponent implements OnInit, OnDestroy { // Implement O
         artists: track.artists.map(({ id, name }:any) => ({ id, name })),
         album: {
           name: track.album.name,
-          images: track.album.images[0]?.url // Safely access the URL
-        }
+          images: track.album.images.length > 0 ? track.album.images[0].url : null // Safely access image URL
+        },
+        uri: track.uri // Store the track URI
+
       })) || [];
       console.log(this.tracks)
     } catch (error) {
       console.error('Error loading playlist tracks:', error);
-      // Handle error
     }
   }
 
 
   togglePlayPause(): void {
     this.isPlaying = !this.isPlaying;
-    // Add actual playback logic here (using a player service or library)
+       if (this.tracks.length === 0) return; // Check if there are tracks
+
+        if (this.isPlaying) {
+            // If starting playback, play the first track in the playlist
+            this.playTrack(this.tracks[0]);
+        } else {
+            // If pausing, stop the current track (you might need a stop method in your player service)
+            this.player.pauseTrack();
+            this.currentTrackUri = null; // Clear the current track
+        }
+  }
+
+  playTrack(track: ITrack): void {
+      this.isPlaying = true;
+      this.currentTrackUri = track.uri;
+      this.player.playTrack(track.uri);
+  }
+  isCurrentlyPlaying(track: ITrack): boolean {
+    return this.isPlaying && this.currentTrackUri === track.uri;
   }
 
   getArtistNames(track:ITrack): string {
     return track.artists.map(artist => artist.name).join(', ');
+  }
+setupQueue(tracks: ITrack[]): void {
+    this.player.setupQueue(tracks)
+
   }
 }

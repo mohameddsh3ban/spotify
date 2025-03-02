@@ -7,6 +7,7 @@ import { HomeComponent } from './core/views/home/home.component';
 import { AuthGuard } from './core/guards/auth.guard'; // Import the AuthGuard
 import { PlaylistPageComponent } from './core/views/playlist-page/playlist-page.component';
 import { AlbumPageComponent } from './core/views/album-page/album-page.component';
+import { SearchPageComponent } from './core/views/search-page/search-page.component';
 
 
 export const routes: Routes = [
@@ -16,5 +17,6 @@ export const routes: Routes = [
     {path:'auth/login', component:LoginComponent },
     {path:'playlist/:id', component:PlaylistPageComponent, canActivate: [AuthGuard]}, //Protect playlist page
     {path:'album/:id', component:AlbumPageComponent, canActivate: [AuthGuard]}, //Protect album page
+    {path :'search', component:SearchPageComponent, canActivate: [AuthGuard]},// Route to SearchPageComponent with query.
     { path: '', redirectTo: '/home', pathMatch: 'full' }
 ];

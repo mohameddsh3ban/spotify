@@ -1,5 +1,5 @@
 import { Component, input } from '@angular/core';
-import { IPlaylistItem } from '../../model/IPlaylistItem.model';
+import { IPlaylist } from '../../model/IPlaylist.model';
 import { RouterLink } from '@angular/router';
 
 
@@ -10,7 +10,10 @@ import { RouterLink } from '@angular/router';
   styleUrl: './playlist-list.component.css'
 })
 export class PlaylistListComponent   {
-playlists = input.required<IPlaylistItem[]>();
+playlists = input.required<IPlaylist[]>();
+ngOnInit() {
+  console.log(this.playlists());
+}
 
 
 }

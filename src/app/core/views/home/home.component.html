@@ -1,80 +1,81 @@
-<div class="bg-spotify-shadeBlack rounded-xl overflow-y-auto h-full  text-white">
-  <!-- Hero Section -->
-  <app-hero></app-hero>
+<div class="bg-spotify-shadeBlack rounded-xl overflow-y-auto h-full text-white">
+  <!-- Loading Component -->
+  <!-- <app-loading *ngIf="isLoading"></app-loading> -->
 
-  <!-- Featured Sections -->
-  <section class="p-4 w-full">
-    <h2 class="text-2xl font-bold mb-4">Featured</h2>
-    <div class="flex flex-col w-full">
-      <div class="featured-section md:w-[85%]">
-        <h3 class="text-lg font-semibold mb-2">New Releases</h3>
-        <app-album-list  [albums]="newReleases"></app-album-list>
+  <!-- Main Content (only shown when loading is complete) -->
+  <!-- <div *ngIf="!isLoading"> -->
+    <!-- Hero Section -->
+    <!-- @defer (on idle) {
+      <app-hero (loaded)="onComponentLoaded()"></app-hero>
+    } @placeholder {
+      <div class="p-4">Loading hero...</div>
+    } -->
+
+    <!-- Featured Sections -->
+    <section class="p-4 w-full">
+      <h2 class="text-2xl font-bold mb-4">Featured</h2>
+      <div class="flex flex-col w-full">
+        <div class="featured-section">
+          <h3 class="text-lg font-semibold mb-2">New Releases</h3>
+          @defer (when newReleasesLoaded) {
+            <app-album-list [albums]="newReleases" (loaded)="onComponentLoaded()"></app-album-list>
+          } @placeholder {
+            <div>Loading new releases...</div>
+          }
+        </div>
+
+        <div class="featured-section">
+          <h3 class="text-lg font-semibold mb-2">Trending</h3>
+          @defer (when trendingLoaded) {
+            <app-album-list [albums]="trending" (loaded)="onComponentLoaded()"></app-album-list>
+          } @placeholder {
+            <div>Loading trending...</div>
+          }
+        </div>
+
+        <div class="featured-section">
+          <h3 class="text-lg font-semibold mb-2">Top Mixes</h3>
+          @defer (when topMixesLoaded) {
+            <app-playlist-list [playlists]="topMixes" (loaded)="onComponentLoaded()"></app-playlist-list>
+          } @placeholder {
+            <div>Loading top mixes...</div>
+          }
+        </div>
       </div>
+    </section>
 
-      <div class="featured-section md:w-[85%]">
-        <h3 class="text-lg font-semibold mb-2">Trending</h3>
-        <app-album-list [albums]="trending"></app-album-list>
+    <!-- Genre & Mood Playlists -->
+    <section class="p-4">
+      <h2 class="text-2xl font-bold mb-4">Genre & Mood Playlists</h2>
+      <div class="flex flex-col">
+        <div class="playlist-section">
+          <h3 class="text-lg font-semibold mb-2">Made for You</h3>
+          @defer (when madeForYouLoaded) {
+            <app-playlist-list [playlists]="madeForYou" (loaded)="onComponentLoaded()"></app-playlist-list>
+          } @placeholder {
+            <div>Loading made for you...</div>
+          }
+        </div>
+
+        <div class="playlist-section">
+          <h3 class="text-lg font-semibold mb-2">Moods</h3>
+          @defer (when moodPlaylistsLoaded) {
+            <app-playlist-list [playlists]="moodPlaylists" (loaded)="onComponentLoaded()"></app-playlist-list>
+          } @placeholder {
+            <div>Loading moods...</div>
+          }
+        </div>
+
+        <div class="playlist-section">
+          <h3 class="text-lg font-semibold mb-2">Discover New Music</h3>
+          @defer (when discoverNewMusicLoaded) {
+            <app-playlist-list [playlists]="discoverNewMusic" (loaded)="onComponentLoaded()"></app-playlist-list>
+          } @placeholder {
+            <div>Loading discover new music...</div>
+          }
+        </div>
       </div>
+    </section>
 
-      <div class="featured-section md:w-[85%]">
-        <h3 class="text-lg font-semibold mb-2">Top Mixes</h3>
-        <app-playlist-list [playlists]="topMixes"></app-playlist-list>
-      </div>
-    </div>
-  </section>
-
-  <!-- Genre & Mood Playlists -->
-  <section class="p-4">
-    <h2 class="text-2xl font-bold mb-4">Genre & Mood Playlists</h2>
-    <div class="flex flex-col">
-      <div class="playlist-section md:w-[85%]">
-        <h3 class="text-lg font-semibold mb-2">Made for You</h3>
-        <app-playlist-list [playlists]="madeForYou"></app-playlist-list>
-      </div>
-
-      <div class="playlist-section">
-        <h3 class="text-lg font-semibold mb-2">Moods</h3>
-        <app-playlist-list [playlists]="moodPlaylists"></app-playlist-list>
-      </div>
-
-      <div class="playlist-section">
-        <h3 class="text-lg font-semibold mb-2">Discover New Music</h3>
-        <app-playlist-list [playlists]="discoverNewMusic"></app-playlist-list>
-      </div>
-    </div>
-  </section>
-
-  <!-- Podcasts -->
-  <!-- <section class="p-4">
-    <h2 class="text-2xl font-bold mb-4">Podcasts</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      <div class="podcast-section">
-        <h3 class="text-lg font-semibold mb-2">Popular</h3>
-        <app-podcast-list [podcasts]="popularPodcasts"></app-podcast-list>
-      </div>
-
-      <div class="podcast-section">
-        <h3 class="text-lg font-semibold mb-2">Your Podcasts</h3>
-        <app-podcast-list [podcasts]="userPodcasts"></app-podcast-list>
-      </div>
-    </div>
-  </section> -->
-
-  <!-- Live & Exclusive -->
-  <!-- <section class="p-4">
-    <h2 class="text-2xl font-bold mb-4">Live & Exclusive</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      <div class="live-section">
-        <h3 class="text-lg font-semibold mb-2">Live Radio</h3>
-        <app-live-radio-list [liveRadios]="liveRadios"></app-live-radio-list>
-      </div>
-
-      <div class="exclusive-section">
-        <h3 class="text-lg font-semibold mb-2">Special Releases</h3>
-        <app-album-list [albums]="specialReleases"></app-album-list>
-      </div>
-    </div>
-  </section> -->
-
-
-</div>
+    <!-- Uncomment and adapt for Podcasts, Live & Exclusive sections as needed -->
+  </div>

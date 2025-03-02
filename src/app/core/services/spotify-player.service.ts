@@ -5,6 +5,7 @@ import { BehaviorSubject, Observable, from, of, Subject } from 'rxjs';
 import { catchError, tap, switchMap } from 'rxjs/operators';
 import { SpotifyApiService } from './spotify-api.service';
 import { SpotifyAuthService } from './spotify-auth.service';
+import { ITrack } from '../model/ITrack.model';
 
 declare global {
     interface Window {
@@ -271,6 +272,13 @@ export class SpotifyPlayerService {
         });
 
       });
+    }
+    setupQueue(tracks: ITrack[]): void {
+        for(const track of tracks) {
+            console.log(track)
+    this.apiService.spotifyApiCall('put', `me/player/queue?uri=${track.uri}`);
+        }
+       
     }
     // Cleanup
     disconnectPlayer(): void {

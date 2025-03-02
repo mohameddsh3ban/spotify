@@ -1,31 +1,41 @@
-@if(currentTrack){<footer title="big-screen" class="bg-black hidden fixed bottom-0  sm:flex justify-between items-center p-2 w-full">
+@if(currentTrack){<footer #pcFooter title="big-screen" class="bg-black hidden fixed bottom-0  sm:flex justify-between items-center p-2 w-full">
     <!-- Playing Track -->
     <div class="flex justify-start min-w-max  space-x-4 items-center ">
         <!-- Image -->
         @if(currentTrack && currentTrack.album && currentTrack.album.images && currentTrack.album.images.length > 0) {
-        <img [src]="currentTrack.album.images[0]?.url || 'https://i.pravatar.cc/300'"
-            [alt]="currentTrack?.name + ' cover'" class="w-14 h-14 object-cover rounded-md" />
+        <img [src]="currentTrack.album.images[0].url || 'https://i.pravatar.cc/300'"
+            [alt]="currentTrack.name + ' cover'" class="w-14 h-14 object-cover rounded-md" />
         }@else {
-        <img src="https://i.pravatar.cc/300" [alt]="currentTrack?.name + ' cover'"
+        <img src="https://i.pravatar.cc/300" [alt]="currentTrack.name + ' cover'"
             class="w-14 h-14 object-cover rounded-md" />
         }
 
         <!-- Track Info -->
         <div class="flex flex-col">
-            <span [routerLink]="['/track', currentTrack?.id]" class="text-white text-sm">{{ currentTrack?.name || 'Track Name' }}</span>
+            <span [routerLink]="['/track', currentTrack.id]" class="text-white text-sm">{{ currentTrack.name || 'Track Name' }}</span>
             <span [routerLink]="['/artist', artistsString]" class="text-spotify-gray text-xs">{{ artistsString || 'Artist Name' }}</span>
         </div>
         <!-- Add to Liked -->
+@if(!isLiked){
+    <button (click)="ToggleLikeTrack()"  title="Add to Liked Songs">
+        <svg data-encore-id="icon" role="img" aria-hidden="true" class="w-4 h-4 group" viewBox="0 0 16 16">
+            <path class="fill-spotify-gray group-hover:fill-white duration-200 "
+                d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8z"></path>
+            <path class="fill-spotify-gray group-hover:fill-white duration-200"
+                d="M11.75 8a.75.75 0 0 1-.75.75H8.75V11a.75.75 0 0 1-1.5 0V8.75H5a.75.75 0 0 1 0-1.5h2.25V5a.75.75 0 0 1 1.5 0v2.25H11a.75.75 0 0 1 .75.75z">
+            </path>
+        </svg>
+    </button>
+}@else {    <button (click)="ToggleLikeTrack()"  title="remove from Liked Songs">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="w-4 p-0.5 rounded-full bg-spotify-green-light group h-4">
+        <path class="fill-spotify-black group-hover:fill-white duration-200 "
+        d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/>
+    </svg>
+</button>}
 
-        <button *ngIf="checkIsSaved(currentTrack.id) " title="Add to Liked Songs">
-            <svg data-encore-id="icon" role="img" aria-hidden="true" class="w-4 h-4" viewBox="0 0 16 16">
-                <path class="fill-spotify-gray hover:fill-white duration-200 "
-                    d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8z"></path>
-                <path class="fill-spotify-gray hover:fill-white duration-200"
-                    d="M11.75 8a.75.75 0 0 1-.75.75H8.75V11a.75.75 0 0 1-1.5 0V8.75H5a.75.75 0 0 1 0-1.5h2.25V5a.75.75 0 0 1 1.5 0v2.25H11a.75.75 0 0 1 .75.75z">
-                </path>
-            </svg>
-        </button>
+   
+
+    
     </div>
     <!-- player  -->
     <div class="flex flex-col items-center justify-center w-full space-y-3">

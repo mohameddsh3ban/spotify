@@ -1,47 +1,47 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { HeroComponent } from "../../components/hero/hero.component";
+import { HeroComponent } from '../../components/hero/hero.component';
 import { SpotifyService } from '../../services/spotify.service';
-import { AlbumListComponent } from "../../components/album-list/album-list.component";
-import { PlaylistListComponent } from "../../components/playlist-list/playlist-list.component";
-// import { PodcastListComponent } from "../../components/podcast-list/podcast-list.component";
-// import { LiveRadioListComponent } from "../../components/live-radio-list/live-radio-list.component";
-import { IPodcast } from '../../model/IPodcast.model';
-import { IPlaylistItem } from '../../model/IPlaylistItem.model';
-import { IAlbum } from '../../model/IAlbum.model';
-import { ILiveRadio } from '../../model/liveRadio.model';
+import { AlbumListComponent } from '../../components/album-list/album-list.component';
+import { PlaylistListComponent } from '../../components/playlist-list/playlist-list.component';
 import { SpotifyPlaylistService } from '../../services/spotify-playlist.service';
-import { NgIf ,CommonModule } from '@angular/common';
+import { NgIf, CommonModule } from '@angular/common';
+import { LoadingComponent } from '../../components/loading/loading.component';
+import { IAlbum } from '../../model/IAlbum.model';
+import { IPlaylist } from '../../model/IPlaylist.model';
 
 @Component({
-    selector: 'app-home',
-    standalone: true,
-    imports: [HeroComponent, AlbumListComponent, PlaylistListComponent  ,CommonModule  ],
-    templateUrl: './home.component.html',
-    styleUrl: './home.component.css'
+  selector: 'app-home',
+  standalone: true,
+  imports: [ AlbumListComponent, PlaylistListComponent, CommonModule],
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
-
   private spotifyService = inject(SpotifyService);
   private spotifyPlaylistService = inject(SpotifyPlaylistService);
+
+  // Loading state
+  isLoading = true;
+  totalComponentsToLoad = 7; // Hero + 2 album lists + 4 playlist lists
+  loadedComponents = 0;
 
   // Featured Sections Data
   newReleases: IAlbum[] = [];
   trending: IAlbum[] = [];
-  topMixes: IPlaylistItem[] = [];
- 
+  topMixes: IPlaylist[] = [];
 
   // Genre & Mood Playlists Data
-  madeForYou: IPlaylistItem[] = [];
-  moodPlaylists: IPlaylistItem[] = [];
-  discoverNewMusic: IPlaylistItem[] = [];
+  madeForYou: IPlaylist[] = [];
+  moodPlaylists: IPlaylist[] = [];
+  discoverNewMusic: IPlaylist[] = [];
 
-  // Podcasts Data (Spotify doesn't have a dedicated "Podcast" API, so this is an example)
-  popularPodcasts: IPodcast[] = [];
-  userPodcasts: IPodcast[] = [];
-
-  // Live & Exclusive Data (Similarly, this is an example; you'll likely need to find external radio APIs)
-  liveRadios: ILiveRadio[] = [];
-  specialReleases: IAlbum[] = [];
+  // Defer flags
+  newReleasesLoaded = false;
+  trendingLoaded = false;
+  topMixesLoaded = false;
+  madeForYouLoaded = false;
+  moodPlaylistsLoaded = false;
+  discoverNewMusicLoaded = false;
 
   ngOnInit(): void {
     this.loadHomeData();
@@ -49,155 +49,176 @@ export class HomeComponent implements OnInit {
 
   async loadHomeData(): Promise<void> {
     try {
-      // **Featured Sections**
-      this.newReleases = await this.getNewReleases();
-      this.trending = await this.getTrending();
-      this.topMixes = await this.getTopMixes();
-   
+      // Fetch all data concurrently
+      const [
+        newReleases,
+        trending,
+        topMixes,
+        madeForYou,
+        moodPlaylists,
+        discoverNewMusic
+      ] = await Promise.all([
+        this.getNewReleases(),
+        this.getTrending(),
+        this.getTopMixes(),
+        this.getMadeForYouPlaylists(),
+        this.getMoodPlaylists(),
+        this.getDiscoverNewMusicPlaylists()
+      ]);
 
-      // // **Genre & Mood Playlists**
-      this.madeForYou = await this.getMadeForYouPlaylists();
-      this.moodPlaylists = await this.getMoodPlaylists();
-      this.discoverNewMusic = await this.getDiscoverNewMusicPlaylists();
+      // Assign data and set defer flags
+      this.newReleases = newReleases;
+      this.newReleasesLoaded = true;
 
-      // // **Podcasts** (Placeholder - Needs a different API source)
-      // this.popularPodcasts = await this.getPopularPodcasts();
-      // this.userPodcasts = await this.getUserPodcasts();
+      this.trending = trending;
+      this.trendingLoaded = true;
 
-      // // **Live & Exclusive** (Placeholder - Needs a different API source)
-      // this.liveRadios = await this.getLiveRadios();
-      // this.specialReleases = await this.getSpecialReleases();
+      this.topMixes = topMixes;
+      this.topMixesLoaded = true;
 
+      this.madeForYou = madeForYou;
+      this.madeForYouLoaded = true;
+
+      this.moodPlaylists = moodPlaylists;
+      this.moodPlaylistsLoaded = true;
+
+      this.discoverNewMusic = discoverNewMusic;
+      this.discoverNewMusicLoaded = true;
+
+      // Increment for hero component (assuming it loads instantly or has its own logic)
+      this.onComponentLoaded(); // For <app-hero>
     } catch (error) {
       console.error('Error loading home data:', error);
-      // Handle the error (e.g., display an error message to the user)
+      // Set all flags to true to proceed even on error
+      this.newReleasesLoaded = this.trendingLoaded = this.topMixesLoaded = true;
+      this.madeForYouLoaded = this.moodPlaylistsLoaded = this.discoverNewMusicLoaded = true;
+      this.onComponentLoaded(); // Ensure hero is counted
     }
   }
 
-  // -----------------------
-  // Data Fetching Methods (Spotify API Calls)
-  // -----------------------
-
-    async getNewReleases(): Promise<IAlbum[]> {
-        try {
-            const response = await this.spotifyService.searchForItem('new releases', ['album'], { limit: 10 });
-
-            if (response && response.albums && response.albums.items) {
-                return response.albums.items.map((item: any) => ({
-                    name: item.name,
-                    artist: item.artists.map((artist: any) => artist.name).join(', '),
-                    imageUrl: item.images[0].url,
-                    id: item.id
-                }));
-            } else {
-                console.warn('Unexpected response format for new releases:', response);
-                return [];
-            }
-        } catch (error) {
-            console.error('Error fetching New Releases:', error);
-            return [];
-        }
+  onComponentLoaded() {
+    this.loadedComponents++;
+    if (this.loadedComponents >= this.totalComponentsToLoad) {
+      this.isLoading = false;
+      console.log('All components and assets initialized!');
     }
+  }
 
-    async getTrending(): Promise<IAlbum[]> {
-        try {
-            const response = await this.spotifyService.searchForItem('trending', ['album'], { limit: 10 });
-
-            if (response && response.albums && response.albums.items) {
-                return response.albums.items.map((item: any) => ({
-                    name: item.name,
-                    artist: item.artists.map((artist: any) => artist.name).join(', '),
-                    imageUrl: item.images[0].url,
-                    id: item.id
-                }));
-            } else {
-                console.warn('Unexpected response format for trending albums:', response);
-                return [];
-            }
-        } catch (error) {
-            console.error('Error fetching Trending:', error);
-            return [];
-        }
+  // Data Fetching Methods
+  async getNewReleases(): Promise<IAlbum[]> {
+    try {
+      const response = await this.spotifyService.searchForItem('new releases', ['album'], { limit: 10 });
+      if (response?.albums?.items) {
+        return response.albums.items.map((item: any) => ({
+          name: item.name,
+          artist: item.artists.map((artist: any) => artist.name).join(', '),
+          imageUrl: item.images[0]?.url || '',
+          id: item.id
+        }));
+      }
+      console.warn('Unexpected response format for new releases:', response);
+      return [];
+    } catch (error) {
+      console.error('Error fetching New Releases:', error);
+      return [];
     }
+  }
 
-    async getTopMixes(): Promise<IPlaylistItem[]> {
-        try {
-            const response = await this.spotifyService.searchForItem('top mixes', ['playlist'], { limit: 10 });
-
-            if (response && response.playlists && response.playlists.items) {
-              
-              //filtter out the playlist check for null 
-             const  unNullItems = response.playlists.items.filter((item: any) => item !== null); 
-            //  console.log(unNullItems);
-                return unNullItems.map((item: any) => ({
-                    name: item.name,
-                    description: item.description || 'A collection of top mixes',
-                    imageUrl: item.images[0].url,
-                    id: item.id
-                }));
-            } else {
-                console.warn('Unexpected response format for top mixes playlists:', response);
-                return [];
-            }
-        } catch (error) {
-            console.error('Error fetching Top Mixes:', error);
-            return [];
-        }
+  async getTrending(): Promise<IAlbum[]> {
+    try {
+      const response = await this.spotifyService.searchForItem('trending', ['album'], { limit: 10 });
+      if (response?.albums?.items) {
+        return response.albums.items.map((item: any) => ({
+          name: item.name,
+          artist: item.artists.map((artist: any) => artist.name).join(', '),
+          imageUrl: item.images[0]?.url || '',
+          id: item.id
+        }));
+      }
+      console.warn('Unexpected response format for trending albums:', response);
+      return [];
+    } catch (error) {
+      console.error('Error fetching Trending:', error);
+      return [];
     }
+  }
 
-
-    async getMadeForYouPlaylists(): Promise<IPlaylistItem[]> {
-        try {
-            // Need to adjust the search query as 'made for you' playlists are usually personalized
-            const response = await this.spotifyPlaylistService.getCurrentUserPlaylists({ limit: 10 });
-console.log(response)
-            if (response && response.items) {
-                return response.items
-            } else {
-                console.warn('Unexpected response format for made for you playlists:', response);
-                return [];
-            }
-        } catch (error) {
-            console.error('Error fetching Made For You Playlists:', error);
-            return [];
-        }
+  async getTopMixes(): Promise<IPlaylist[]> {
+    try {
+      const response = await this.spotifyService.searchForItem('top mixes', ['playlist'], { limit: 10 });
+      if (response?.playlists?.items) {
+        const unNullItems = response.playlists.items.filter((item: any) => item !== null);
+        return unNullItems.map((item: any) => ({
+          name: item.name,
+          description: item.description || 'A collection of top mixes',
+          imageUrl: item.images[0]?.url || '',
+          id: item.id
+        }));
+      }
+      console.warn('Unexpected response format for top mixes playlists:', response);
+      return [];
+    } catch (error) {
+      console.error('Error fetching Top Mixes:', error);
+      return [];
     }
+  }
 
-    async getMoodPlaylists(): Promise<IPlaylistItem[]> {
-        try {
-            const response = await this.spotifyService.searchForItem('mood', ['playlist'], { limit: 10 });
-
-            if (response && response.playlists && response.playlists.items) {
-                // console.log(response.playlists.items)
-                const unNullItems = response.playlists.items.filter((item: any) => item !== null);
-                return unNullItems
-            } else {
-                console.warn('Unexpected response format for mood playlists:', response);
-                return [];
-            }
-        } catch (error) {
-            console.error('Error fetching Mood Playlists:', error);
-            return [];
-        }
+  async getMadeForYouPlaylists(): Promise<IPlaylist[]> {
+    try {
+      const response = await this.spotifyPlaylistService.getCurrentUserPlaylists({ limit: 10 });
+      if (response?.items) {
+        return response.items.map((item: any) => ({
+          name: item.name,
+          description: item.description || '',
+          imageUrl: item.images[0]?.url || '',
+          id: item.id
+        }));
+      }
+      console.warn('Unexpected response format for made for you playlists:', response);
+      return [];
+    } catch (error) {
+      console.error('Error fetching Made For You Playlists:', error);
+      return [];
     }
+  }
 
-    async getDiscoverNewMusicPlaylists(): Promise<IPlaylistItem[]> {
-        try {
-            const response = await this.spotifyService.searchForItem('discover new music', ['playlist'], { limit: 10 });
-
-            if (response && response.playlists && response.playlists.items) {
-                const unNullItems = response.playlists.items.filter((item: any) => item !== null);
-                return unNullItems
-            } else {
-                console.warn('Unexpected response format for discover new music playlists:', response);
-                return [];
-            }
-        } catch (error) {
-            console.error('Error fetching Discover New Music Playlists:', error);
-            return [];
-        }
+  async getMoodPlaylists(): Promise<IPlaylist[]> {
+    try {
+      const response = await this.spotifyService.searchForItem('mood', ['playlist'], { limit: 10 });
+      if (response?.playlists?.items) {
+        const unNullItems = response.playlists.items.filter((item: any) => item !== null);
+        return unNullItems.map((item: any) => ({
+          name: item.name,
+          description: item.description || '',
+          imageUrl: item.images[0]?.url || '',
+          id: item.id
+        }));
+      }
+      console.warn('Unexpected response format for mood playlists:', response);
+      return [];
+    } catch (error) {
+      console.error('Error fetching Mood Playlists:', error);
+      return [];
     }
+  }
 
-
-
+  async getDiscoverNewMusicPlaylists(): Promise<IPlaylist[]> {
+    try {
+      const response = await this.spotifyService.searchForItem('discover new music', ['playlist'], { limit: 10 });
+      if (response?.playlists?.items) {
+        const unNullItems = response.playlists.items.filter((item: any) => item !== null);
+        return unNullItems.map((item: any) => ({
+          name: item.name,
+          description: item.description || '',
+          imageUrl: item.images[0]?.url || '',
+          id: item.id
+        }));
+      }
+      console.warn('Unexpected response format for discover new music playlists:', response);
+      return [];
+    } catch (error) {
+      console.error('Error fetching Discover New Music Playlists:', error);
+      return [];
+    }
+  }
 }

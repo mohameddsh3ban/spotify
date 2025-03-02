@@ -17,11 +17,7 @@ import { SpotifyPlayerService } from '../../services/spotify-player.service';
   styleUrl: './album-page.component.css'
 })
 export class AlbumPageComponent implements OnInit {
-isLiked: any;
-toggleLike() {
-throw new Error('Method not implemented.');
-}
-
+  isLiked: any;
   private route = inject(ActivatedRoute);
   private spotifyService = inject(SpotifyService);
   private player = inject(SpotifyPlayerService)
@@ -30,6 +26,7 @@ throw new Error('Method not implemented.');
   album: IAlbum | undefined;
   tracks: ITrack[] = [];
   isPlaying: boolean = false;
+  currentTrackUri: string | null = null; // Track the currently playing track
 
   ngOnInit(): void {
     this.albumId = this.route.snapshot.paramMap.get('id');
@@ -45,13 +42,14 @@ throw new Error('Method not implemented.');
   async loadAlbumDetails(albumId: string): Promise<void> {
     try {
       const album = await this.spotifyService.getAlbum(albumId);
-      const { name, images, uri } = album //Include the uri
+      const { name, images, uri, artists } = album //Include the uri
       console.log(album)
       this.album = {
         name: name || "Unknown name",
         imageUrl: images[0]?.url || "https://picsum.photos/300/300",
-        artist: this.getArtistNames(album.artists),
-        uri: uri // store the uri for playing the album
+        artist: this.getArtistNames(artists),  //Use the artist data passed
+        uri: uri, // store the uri for playing the album
+        artists: artists
       };
     } catch (error) {
       console.error('Error loading album details:', error);
@@ -103,17 +101,27 @@ throw new Error('Method not implemented.');
 
   togglePlayPause(): void {
     if (!this.album?.uri) {
-        console.warn("Album URI is missing.  Cannot play.");
-        return;
+      console.warn("Album URI is missing.  Cannot play.");
+      return;
     }
     this.isPlaying = !this.isPlaying;
+    if(this.isPlaying){
+      this.currentTrackUri = this.album.uri;  //Set the album URI to play
+    } else {
+       this.currentTrackUri = null; //stop playing
+    }
+
     this.player.playAlbum(this.album.uri);
   }
 
   playTrack(track: ITrack) {
-    this.player.playTrack(track.uri);
+        this.isPlaying = true;
+        this.currentTrackUri = track.uri;
+        this.player.playTrack(track.uri);
   }
-
+  isCurrentlyPlaying(track: ITrack): boolean {
+    return this.isPlaying && this.currentTrackUri === track.uri;
+  }
   formatDuration(durationMs: number|undefined): string {
     if(!durationMs) return '00'
     const seconds = Math.floor((durationMs / 1000) % 60);
@@ -122,8 +130,7 @@ throw new Error('Method not implemented.');
     return `${minutes}:${formattedSeconds}`;
   }
 
-  getArtistNames(artists:any): string {
-
+  getArtistNames(artists:any[]): string {  //pass an array of artist to get the names
     return artists.map((artist:any) => artist.name).join(', ');
   }
   getArtistNamesFromTrack(track:ITrack): string {
