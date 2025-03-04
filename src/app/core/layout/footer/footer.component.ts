@@ -24,6 +24,7 @@ import { NgIf, AsyncPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ITrack } from '../../model/ITrack.model';
 import { SpotifyService } from '../../services/spotify.service';
+import { flush } from '@angular/core/testing';
 
 @Component({
   selector: 'app-footer',
@@ -45,9 +46,8 @@ export class FooterComponent implements OnInit, OnDestroy, AfterViewInit {
   isShuffle = false;
   repeatState: 'track' | 'context' | 'off' = 'off';
   progressPercent = signal(0);
-  firstPlay = true;
   isLiked = false;
-
+onRepeat = 'off';
   @ViewChild('progressBar', { static: false }) progressBar:
     | ElementRef
     | undefined;
@@ -122,7 +122,12 @@ export class FooterComponent implements OnInit, OnDestroy, AfterViewInit {
           this.progressMs = Math.min(state.position, this.durationMs);
           this.updateProgress();
           this.startProgressUpdates();
-
+          if (!this.currentTrack || this.currentTrack.id !== this.currentTrack.id) {
+            this.currentTrack = this.currentTrack;
+            if (this.currentTrack) {
+              this.checkIsSaved(this.currentTrack.id);
+            }
+          }
           if (this.currentTrack) {
             this.artistsString = this.currentTrack.artists
               .map((artist) => artist.name)
@@ -167,15 +172,8 @@ export class FooterComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   //----Player Methods ---- //
-
   togglePlay(): void {
-    if (this.firstPlay) {
-      if (this.currentTrack) {
-        this.firstPlay = false;
-        this.playerService.playTrack(this.currentTrack.uri);
-      }
-    }
-    this.playerService.togglePlay();
+      this.playerService.togglePlay();
   }
 
   playNextTrack(): void {
@@ -187,13 +185,12 @@ export class FooterComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   toggleRepeat(): void {
-    const nextState =
-      this.repeatState === 'off'
-        ? 'context'
-        : this.repeatState === 'context'
-        ? 'track'
-        : 'off';
-    this.playerService.setRepeat(nextState);
+    this.repeatState = (['off', 'context', 'track'] as const)[
+      (['off', 'context', 'track'].indexOf(this.repeatState) + 1) % 3
+    ];
+    this.onRepeat = this.repeatState;
+    console.log(this.repeatState);
+    this.playerService.setRepeat(this.repeatState);
   }
 
   toggleShuffle(): void {
@@ -218,6 +215,9 @@ export class FooterComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   setVolume(event: MouseEvent): void {
+ if(this.isMuted){
+  this.isMuted = false
+ }
     if (this.volumeBar) {
       const volumeBarRect =
         this.volumeBar.nativeElement.getBoundingClientRect();
@@ -307,25 +307,36 @@ export class FooterComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     this.isMuted = !this.isMuted;
   }
+ 
   async checkIsSaved(trackId: string) {
-    const res = this.spotifyService.checkUserSavedTracks([trackId]);
-    res.then((res) => {
-      this.isLiked = res[0];
-    });
-  }
-  ToggleLikeTrack() {
-    if (this.currentTrack) {
-      if (!this.isLiked) {
-        this.spotifyService.saveTracksForCurrentUser([this.currentTrack?.id]);
-        console.log('liked');
-      } else {
-        this.spotifyService.removeTracksForCurrentUser([this.currentTrack.id]);
-        console.log('unliked');
-      }
+    try {
+      const isSaved = await this.spotifyService.checkIsSaved(trackId);
+      this.isLiked = isSaved;
+      console.log('Track saved status:', this.isLiked);
+    } catch (error) {
+      console.error('Error checking saved status:', error);
+      this.isLiked = false;
     }
-    this.isLiked = !this.isLiked;
   }
-
+  async ToggleLikeTrack() {
+    if (!this.currentTrack) return;
+  
+    try {
+      if (!this.isLiked) {
+        await this.spotifyService.saveTracksForCurrentUser([this.currentTrack.id]);
+        console.log('Track liked');
+      } else {
+        await this.spotifyService.removeTracksForCurrentUser([this.currentTrack.id]);
+        console.log('Track unliked');
+      }
+      // Re-check the actual state after toggle
+      await this.checkIsSaved(this.currentTrack.id);
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      // Revert UI state if operation failed
+      this.isLiked = !this.isLiked;
+    }
+  }
   ngOnDestroy(): void {
     this.playerService.disconnectPlayer();
     this.subscriptions.forEach((sub) => sub.unsubscribe());

@@ -158,33 +158,43 @@ export class SpotifyPlayerService {
     async playTrack(uri: string): Promise<void> {
         await this.play(uri);
     }
+    async playAlbum(albumUri: string, offset: number = 0): Promise<void> {
+        await this.play(albumUri, "context_uri", offset);
+      }
 
-    async playAlbum(albumUri: string): Promise<void> {
-        await this.play(albumUri, "context_uri");
-        
+    private async play(
+        uri: string,
+        type: string = "uris",
+        offset?: number
+    ): Promise<void> {
+        const deviceId = this.deviceId.getValue();
+        if (!deviceId) {
+            this.handleError('Failed to play track', 'No device ID available.');
+            return;
+        }
+
+        const body: any = {};
+        if (type === "context_uri") {
+            body.context_uri = uri;
+            if (offset !== undefined) {
+                body.offset = { position: offset };
+            }
+        } else {
+            body.uris = [uri];
+        }
+
+        try {
+            await this.apiService.spotifyApiCall('put', `me/player/play?device_id=${deviceId}`, { body });
+        } catch (error) {
+            this.handleError('Failed to play track', error);
+        }
     }
 
-    private async play(uri: string, type: string = "uris"): Promise<void> {
-      const deviceId = this.deviceId.getValue();
-      if (!deviceId) {
-          this.handleError('Failed to play track', 'No device ID available.');
-          return;
-      }
+    // New method for playing playlist context
+    async playPlaylistContext(playlistUri: string, offset: number): Promise<void> {
+        await this.play(playlistUri, "context_uri", offset);
+    }
 
-      const body: any = {};
-      if(type === "context_uri") {
-          body.context_uri = uri;
-      }
-      else {
-          body.uris = [uri];
-      }
-
-      try {
-          await this.apiService.spotifyApiCall('put', `me/player/play?device_id=${deviceId}`, {  body: body });
-      } catch (error) {
-          this.handleError('Failed to play track', error);
-      }
-  }
 
     async seek(positionMs: number): Promise<void> {
         try {
@@ -273,13 +283,7 @@ export class SpotifyPlayerService {
 
       });
     }
-    setupQueue(tracks: ITrack[]): void {
-        for(const track of tracks) {
-            console.log(track)
-    this.apiService.spotifyApiCall('put', `me/player/queue?uri=${track.uri}`);
-        }
-       
-    }
+
     // Cleanup
     disconnectPlayer(): void {
         if (this.player) {

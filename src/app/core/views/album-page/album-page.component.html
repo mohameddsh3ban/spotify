@@ -45,7 +45,7 @@
             </thead>
             <tbody>
                 <tr *ngFor="let track of tracks; let i = index"
-                    class="hover:bg-[#282828] transition-colors w-full duration-200 cursor-pointer" (click)="playTrack(track)"
+                    class="hover:bg-[#282828] transition-colors w-full duration-200 cursor-pointer" (click)="playTrack(track,i)"
                     [class.bg-green-800]="isCurrentlyPlaying(track)"> <!-- Highlight playing track -->
                     <td class="px-4 py-3 text-gray-400">{{ i + 1 }}</td>
                      <td class="px-4 py-3">

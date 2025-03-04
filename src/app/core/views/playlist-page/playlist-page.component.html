@@ -38,7 +38,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let track of tracks; let i = index" (click)="playTrack(track)"
+        <tr *ngFor="let track of tracks; let i = index" (click)="playTrack(track , i)"
           class="hover:bg-[#282828] transition-colors w-full duration-200 cursor-pointer"> <!-- Slightly darker hover -->
           <td class="px-4 py-3 text-gray-400">{{ i + 1 }}</td>  <!-- Muted numbering -->
           <td class="px-4 py-3">

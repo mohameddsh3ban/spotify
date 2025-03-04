@@ -20,7 +20,7 @@ export class ListAComponent implements AfterViewInit, OnDestroy {
   private resizeObserver: ResizeObserver | undefined;
 
   ngOnInit() {
-    this.spotifyPlaylistSrv.getCurrentUserPlaylists().then(res => {
+    this.spotifyPlaylistSrv.getCurrentUserPlaylists( { limit: 20 }).then(res => {
       this.items.set(res.items);
       console.log(this.items());
     });

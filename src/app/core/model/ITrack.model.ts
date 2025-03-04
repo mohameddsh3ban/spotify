@@ -1,9 +1,8 @@
+import { IAlbum } from "./IAlbum.model";
+import { IArtist } from "./IArtist.model";
+
 // Define the interface for the Image object
-interface Image {
-  height: number;
-  url: string;
-  width: number;
-}
+
 
 // Define the interface for the External URLs object
 interface ExternalUrls {
@@ -21,15 +20,12 @@ interface Artist {
 }
 
 // Define the interface for the Album object
-interface Album {
-  images?: Image[];
-  name: string;
-}
+
 
 // Define the main interface for the Track object
 export interface ITrack {
-  album?: Album;
-  artists: Artist[];
+  album: IAlbum;
+  artists: IArtist[];
   name: string;
   id: string;
   available_markets?: string[];
@@ -43,4 +39,5 @@ export interface ITrack {
   type?: string;
   uri: string;
   is_local?: boolean;
+  popularity:any
 }

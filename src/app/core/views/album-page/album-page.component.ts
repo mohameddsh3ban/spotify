@@ -27,18 +27,13 @@ export class AlbumPageComponent implements OnInit {
   tracks: ITrack[] = [];
   isPlaying: boolean = false;
   currentTrackUri: string | null = null; // Track the currently playing track
-
   ngOnInit(): void {
     this.albumId = this.route.snapshot.paramMap.get('id');
-
     if (this.albumId) {
       this.loadAlbumDetails(this.albumId);
       this.loadAlbumTracks(this.albumId);
-    } else {
-      console.error('Album ID is missing.');
     }
   }
-
   async loadAlbumDetails(albumId: string): Promise<void> {
     try {
       const album = await this.spotifyService.getAlbum(albumId);
@@ -100,24 +95,25 @@ export class AlbumPageComponent implements OnInit {
   }
 
   togglePlayPause(): void {
-    if (!this.album?.uri) {
-      console.warn("Album URI is missing.  Cannot play.");
-      return;
-    }
-    this.isPlaying = !this.isPlaying;
-    if(this.isPlaying){
-      this.currentTrackUri = this.album.uri;  //Set the album URI to play
+    if (!this.album?.uri || this.tracks.length === 0) return;
+
+    if (this.isPlaying) {
+      this.player.pauseTrack();
+      this.isPlaying = false;
     } else {
-       this.currentTrackUri = null; //stop playing
-    }
-
-    this.player.playAlbum(this.album.uri);
-  }
-
-  playTrack(track: ITrack) {
+      this.player.playAlbum(this.album.uri, 0).then(() => {
         this.isPlaying = true;
-        this.currentTrackUri = track.uri;
-        this.player.playTrack(track.uri);
+        this.currentTrackUri = this.tracks[0]?.uri;
+      });
+    }
+  }
+  playTrack(track: ITrack, index: number): void {
+    if (!this.album?.uri) return;
+
+    this.player.playAlbum(this.album.uri, index).then(() => {
+      this.isPlaying = true;
+      this.currentTrackUri = track.uri;
+    });
   }
   isCurrentlyPlaying(track: ITrack): boolean {
     return this.isPlaying && this.currentTrackUri === track.uri;

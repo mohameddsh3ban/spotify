@@ -172,7 +172,16 @@ export class SpotifyService {
         if (options.offset) params = params.set('offset', options.offset.toString());
         return this.apiService.spotifyApiCall('get', endpoint, { params });
     }
-
+   // In SpotifyService
+async checkIsSaved(trackId: string): Promise<boolean> {
+    try {
+      const res = await this.checkUserSavedTracks([trackId]);
+      return res[0];
+    } catch (error) {
+      console.error('Error checking saved track:', error);
+      return false;
+    }
+  }
     // Personalization Endpoints
     async getUserTopArtistsAndTracks(type: 'artists' | 'tracks', options: { time_range?: string; limit?: number; offset?: number } = {}): Promise<any> {
         const endpoint = `me/top/${type}`;

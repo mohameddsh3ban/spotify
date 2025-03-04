@@ -1,0 +1,135 @@
+<!-- track-page.component.html -->
+<div class="bg-[#121212] text-white min-h-full h-full overflow-y-auto p-6 md:p-8" *ngIf="track">
+    <div class="flex flex-col md:flex-row items-center justify-start md:items-start gap-6 mb-6 md:mb-8">
+        <div class="w-full md:w-96 shadow-2xl">
+            @if (track.album.images) {
+                <img [src]="track.album.images[0]?.url || 'https://picsum.photos/300/300'" 
+                alt="{{ track.name }}" 
+                class="rounded-md aspect-square object-cover" />
+            }
+         
+        </div>
+
+        <div class="w-full flex flex-col items-center md:items-start">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-2">{{ track.name }}</h1>
+            @if(track.popularity){
+                <div class="flex items-center space-x-2 mb-4">
+                    <!-- Explicit content indicator -->
+                    <span *ngIf="track.explicit" class="text-xs bg-[#333333] px-2 py-1 rounded-sm">
+                        EXPLICIT
+                    </span>
+                    
+                    <!-- Track popularity -->
+                    <div class="text-spotify-gray flex items-center">
+                        <i class="fas fa-chart-line text-sm mr-1"></i>
+                        <span class="text-sm">{{ track.popularity }}%</span>
+                    </div>
+                </div>
+            }
+       
+
+            <!-- Artist and album info -->
+            <div class="space-y-2">
+                <p class="text-lg text-spotify-gray">
+                    <span>Song • </span>
+                    <a [routerLink]="['/artist', track.artists[0]?.id]" 
+                       class="hover:underline text-white">
+                        {{ getArtistNames(track.artists) }}
+                    </a>
+                </p>
+                
+                <p class="text-lg text-spotify-gray">
+                    <span>From </span>
+                    <a [routerLink]="['/album', track.album?.id]" 
+                       class="hover:underline text-white">
+                        {{ track.album?.name }}
+                    </a>
+                    <span> • {{ track.album?.release_date | date:'yyyy' }}</span>
+                </p>
+                
+                <p class="text-lg text-spotify-gray">
+                    {{ formatDuration(track.duration_ms) }}
+                </p>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="flex items-center space-x-4 mt-6">
+                <button (click)="togglePlayPause()" 
+                        class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full transition duration-300">
+                    <i class="fas fa-play mr-2" *ngIf="!isPlaying"></i>
+                    <i class="fas fa-pause mr-2" *ngIf="isPlaying"></i>
+                    {{ isPlaying ? 'Pause' : 'Play' }}
+                </button>
+
+                <button [class.bg-spotify-green-light]="isLiked" (click)="toggleLike()"  class="text-spotify-gray hover:text-white transition-colors">
+                    <i class="far fa-heart bg-red-300 text-2xl"></i>
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Track Details -->
+    <div class="space-y-6 max-w-3xl mx-auto">
+        <!-- Album Section -->
+        <div class="bg-[#181818] p-6 rounded-lg">
+            <div class="flex items-center gap-4 mb-4">
+            @if(track.album?.images){
+                    <img [src]="track.album.images?.[0]?.url || 'https://picsum.photos/300/300'" 
+                    alt="{{ track.album?.name }}" 
+                    class="w-20 h-20 rounded-md" />
+                }
+             
+                <div>
+                    <h3 class="font-bold text-lg">Album</h3>
+                    <a [routerLink]="['/album', track.album?.id]" 
+                       class="text-spotify-gray hover:underline">
+                        {{ track.album?.name }}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Artist Section -->
+         @for(artist of artists; track $index){
+            <div class="bg-[#181818] p-6 rounded-lg">
+                <h3 class="font-bold text-lg mb-4">Artist</h3>
+                <div class="flex items-center gap-4">
+                    <img [src]="artist.images?.[0]?.url || 'https://picsum.photos/300/300'" 
+                         alt="{{artist.name }}" 
+                         class="w-20 h-20 rounded-full" />
+                    <div>
+                        <a [routerLink]="['/artist', artist.id]" 
+                           class="text-xl font-bold hover:underline">
+                            {{ artist.name }}
+                        </a>
+                        <p class="text-spotify-gray">{{ artist?.type | titlecase }}</p>
+                    </div>
+                </div>
+            </div>
+         }
+   
+
+        <!-- Track Info Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-spotify-gray">
+            <div class="bg-[#181818] p-4 rounded-lg">
+                <p class="text-sm">Release Date</p>
+                <p class="text-white">{{ track.album?.release_date | date:'mediumDate' }}</p>
+            </div>
+            
+            <div class="bg-[#181818] p-4 rounded-lg">
+                <p class="text-sm">Track Number</p>
+                <p class="text-white">#{{ track.track_number }}</p>
+            </div>
+            
+            <div class="bg-[#181818] p-4 rounded-lg">
+                <p class="text-sm">Disc Number</p>
+                <p class="text-white">{{ track.disc_number }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="!track" class="bg-[#121212] text-white min-h-screen p-6 md:p-8 flex items-center justify-center">
+    <app-loading></app-loading>
+</div>
