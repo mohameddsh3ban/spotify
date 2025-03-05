@@ -53,6 +53,7 @@ export class HomeComponent implements OnInit {
       this.recentPlaylists.set(recent);
       this.personalizedPlaylists.set(personalized);
       this.newReleases.set(releases);
+      console.log(personalized);
       this.genres.set(genreData);
       this.recentTracks.set(tracks);
       this.isLoading.set(false);
@@ -146,7 +147,7 @@ export class HomeComponent implements OnInit {
   }
 
   playTrack(track: ITrack) {
-    console.log(track.uri);
+
     this.playerService.playTrackContext(track.uri);
   }
 
