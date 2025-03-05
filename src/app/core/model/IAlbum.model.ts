@@ -10,4 +10,5 @@ export interface IAlbum {
     uri?: string; // Add if you have a URI
     artists?: IArtist[];
     release_date?: string;
+    type?:any
   }

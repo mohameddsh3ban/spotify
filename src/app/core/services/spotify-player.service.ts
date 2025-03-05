@@ -40,6 +40,7 @@ interface WebPlaybackState {
 
 @Injectable({ providedIn: 'root' })
 export class SpotifyPlayerService {
+ 
 
     private apiService = inject(SpotifyApiService);
     private authService = inject(SpotifyAuthService);
@@ -158,6 +159,24 @@ export class SpotifyPlayerService {
     async playTrack(uri: string): Promise<void> {
         await this.play(uri);
     }
+    async playTracks(trackUris: string[], offset: number = 0): Promise<void> {
+        const deviceId = this.deviceId.getValue();
+        if (!deviceId) {
+          this.handleError('Failed to play tracks', 'No device ID available.');
+          return;
+        }
+    
+        try {
+          await this.apiService.spotifyApiCall('put', `me/player/play?device_id=${deviceId}`, {
+            body: {
+              uris: trackUris,
+              offset: { position: offset }
+            }
+          });
+        } catch (error) {
+          this.handleError('Failed to play tracks', error);
+        }
+      }
     async playAlbum(albumUri: string, offset: number = 0): Promise<void> {
         await this.play(albumUri, "context_uri", offset);
       }
@@ -244,6 +263,25 @@ export class SpotifyPlayerService {
     setRepeat(state: string) {
        this.apiService.spotifyApiCall('put', `me/player/repeat?state=${state}`);
     }
+    async playAlbumContext(albumUri: string, offset: number = 0): Promise<void> {
+        const deviceId = this.deviceId.getValue();
+        if (!deviceId) {
+          this.handleError('Failed to play album', 'No device ID available.');
+          return;
+        }
+    
+        try {
+          await this.apiService.spotifyApiCall('put', `me/player/play?device_id=${deviceId}`, {
+            body: {
+              context_uri: albumUri,
+              offset: { position: offset }
+            }
+          });
+        } catch (error) {
+          this.handleError('Failed to play album', error);
+        }
+      }
+    
 
     async transferPlayback(): Promise<void> {
         const deviceId = this.deviceId.getValue();
@@ -283,6 +321,39 @@ export class SpotifyPlayerService {
 
       });
     }
+    // spotify-player.service.ts
+async playTrackContext(
+    trackUri: string, 
+    contextUri?: string, 
+    offset: number = 0
+  ): Promise<void> {
+    const deviceId = this.deviceId.getValue();
+    if (!deviceId) {
+      this.handleError('Failed to play track', 'No device ID available.');
+      return;
+    }
+  
+    try {
+      const body: any = {};
+  
+      if (contextUri) {
+        // Play within context (album/playlist)
+        body.context_uri = contextUri;
+        body.offset = { position: offset };
+      } else {
+        // Play standalone track
+        body.uris = [trackUri];
+      }
+  
+      await this.apiService.spotifyApiCall(
+        'put', 
+        `me/player/play?device_id=${deviceId}`, 
+        { body }
+      );
+    } catch (error) {
+      this.handleError('Failed to play track', error);
+    }
+  }
 
     // Cleanup
     disconnectPlayer(): void {

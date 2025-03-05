@@ -30,7 +30,7 @@ export interface ITrack {
   id: string;
   available_markets?: string[];
   disc_number?: number;
-  duration_ms?: number;
+  duration_ms: number;
   explicit?: boolean;
   external_urls?: ExternalUrls;
   href?: string;

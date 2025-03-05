@@ -1,81 +1,100 @@
-<div class="bg-spotify-shadeBlack rounded-xl overflow-y-auto h-full text-white">
-  <!-- Loading Component -->
-  <!-- <app-loading *ngIf="isLoading"></app-loading> -->
-
-  <!-- Main Content (only shown when loading is complete) -->
-  <!-- <div *ngIf="!isLoading"> -->
-    <!-- Hero Section -->
-    <!-- @defer (on idle) {
-      <app-hero (loaded)="onComponentLoaded()"></app-hero>
-    } @placeholder {
-      <div class="p-4">Loading hero...</div>
-    } -->
-
-    <!-- Featured Sections -->
-    <section class="p-4 w-full">
-      <h2 class="text-2xl font-bold mb-4">Featured</h2>
-      <div class="flex flex-col w-full">
-        <div class="featured-section">
-          <h3 class="text-lg font-semibold mb-2">New Releases</h3>
-          @defer (when newReleasesLoaded) {
-            <app-album-list [albums]="newReleases" (loaded)="onComponentLoaded()"></app-album-list>
-          } @placeholder {
-            <div>Loading new releases...</div>
-          }
+<div class="bg-spotify-shadeBlack h-full  text-white overflow-y-auto">
+  <!-- Hero Section -->
+  <section class="relative h-[400px]">
+    <div class="absolute inset-0 bg-gradient-to-t from-spotify-black via-spotify-black/50 to-transparent">
+      <div class="container mx-auto px-6 h-full flex items-end pb-16">
+        <div class="max-w-2xl">
+          <h1 class="text-5xl font-bold mb-4 drop-shadow-xl">Your Daily Mix</h1>
+          <p class="text-xl text-spotify-lightGray mb-6">Made specially for you • Updated daily</p>
+          <button 
+            (click)="playFeatured()"
+            class="bg-spotify-green-light text-black px-8 py-3 rounded-full font-bold hover:scale-105 transition-transform">
+            Play Now
+          </button>
         </div>
+      </div>
+    </div>
+    <img 
+      src="" 
+      alt="Featured content"
+      class="w-full h-full object-cover absolute inset-0 -z-10"
+    >
+  </section>
 
-        <div class="featured-section">
-          <h3 class="text-lg font-semibold mb-2">Trending</h3>
-          @defer (when trendingLoaded) {
-            <app-album-list [albums]="trending" (loaded)="onComponentLoaded()"></app-album-list>
-          } @placeholder {
-            <div>Loading trending...</div>
-          }
-        </div>
+  <!-- Main Content -->
+  <div class="container mx-auto px-6 py-8 space-y-12">
+    <!-- Quick Access -->
+    <section>
+      <h2 class="text-2xl font-bold mb-6">Jump Back In</h2>
+      @defer ( ) {
+        <app-playlist-list 
+        [playlists]="recentPlaylists()"
+        (play)="playPlaylist($event)"
+        class="scrollbar-hide"
+      ></app-playlist-list>
+      }@placeholder {
+<app-loading></app-loading>
+      }
 
-        <div class="featured-section">
-          <h3 class="text-lg font-semibold mb-2">Top Mixes</h3>
-          @defer (when topMixesLoaded) {
-            <app-playlist-list [playlists]="topMixes" (loaded)="onComponentLoaded()"></app-playlist-list>
-          } @placeholder {
-            <div>Loading top mixes...</div>
-          }
+    </section>
+
+    <!-- Made For You -->
+    <section>
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Made For You</h2>
+      </div>
+      <app-playlist-list 
+        [playlists]="personalizedPlaylists()"
+        (play)="playPlaylist($event)"
+      ></app-playlist-list>
+    </section>
+
+    <!-- New Releases -->
+    <section>
+     
+      <app-album-list 
+        [albums]="newReleases()"  
+        (play)="playAlbum($event)"
+        #newReleasess
+        class="scrollbar-hide"
+      ></app-album-list>
+    </section>
+
+    <!-- Genre Grid -->
+    <section>
+      <h2 class="text-2xl font-bold mb-6">Genres & Moods</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div *ngFor="let genre of genres()" 
+             class="genre-card"
+             [style.background]="genre.color"
+             [routerLink]="['/genre', genre.id]">
+          <h3 class="text-xl font-bold z-10">{{ genre.name }}</h3>
+          <img [src]="genre.iconUrl" class="genre-icon">
         </div>
       </div>
     </section>
 
-    <!-- Genre & Mood Playlists -->
-    <section class="p-4">
-      <h2 class="text-2xl font-bold mb-4">Genre & Mood Playlists</h2>
-      <div class="flex flex-col">
-        <div class="playlist-section">
-          <h3 class="text-lg font-semibold mb-2">Made for You</h3>
-          @defer (when madeForYouLoaded) {
-            <app-playlist-list [playlists]="madeForYou" (loaded)="onComponentLoaded()"></app-playlist-list>
-          } @placeholder {
-            <div>Loading made for you...</div>
-          }
-        </div>
-
-        <div class="playlist-section">
-          <h3 class="text-lg font-semibold mb-2">Moods</h3>
-          @defer (when moodPlaylistsLoaded) {
-            <app-playlist-list [playlists]="moodPlaylists" (loaded)="onComponentLoaded()"></app-playlist-list>
-          } @placeholder {
-            <div>Loading moods...</div>
-          }
-        </div>
-
-        <div class="playlist-section">
-          <h3 class="text-lg font-semibold mb-2">Discover New Music</h3>
-          @defer (when discoverNewMusicLoaded) {
-            <app-playlist-list [playlists]="discoverNewMusic" (loaded)="onComponentLoaded()"></app-playlist-list>
-          } @placeholder {
-            <div>Loading discover new music...</div>
-          }
+    <!-- Recently Played -->
+    <section>
+      <h2 class="text-2xl font-bold mb-6">Recently Played</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div *ngFor="let track of recentTracks()" 
+             class="recent-track-card duration-200 hover:bg-green-200">
+          <img [src]="track.album.images?.[0]?.url" class="w-16 h-16 rounded">
+          <div class="flex-1 truncate">
+            <p class="font-medium truncate hover:underline cursor-pointer hover:text-black" [routerLink]="['/track', track.id]">{{ track.name }}</p>
+            @for(artist of track.artists;track $index){
+              <p class="text-spotify-gray text-sm truncate cursor-pointer hover:underline hover:text-black" [routerLink]="['/artist', artist.id]">
+                {{ artist.name }}
+              </p>
+            }
+         
+          </div>
+          <button (click)="playTrack(track)" class="play-btn px-1 cursor-pointer">
+            <i class="fas fa-play px-1.5"></i>
+          </button>
         </div>
       </div>
     </section>
-
-    <!-- Uncomment and adapt for Podcasts, Live & Exclusive sections as needed -->
   </div>
+</div>

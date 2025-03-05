@@ -2,3 +2,28 @@
   background: rgb(18,18,18);
   background: linear-gradient(0deg, rgba(18,18,18,1) 66%, rgba(13,121,9,1) 100%);
 }
+/* styles.css */
+.genre-card {
+  @apply relative p-6 rounded-lg overflow-hidden min-h-[150px] flex items-end;
+  transition: transform 0.3s ease;
+}
+
+.genre-card:hover {
+  transform: scale(1.02);
+}
+
+.genre-icon {
+  @apply absolute right-0 bottom-0 w-24 h-24 opacity-40;
+}
+
+.recent-track-card {
+  @apply flex items-center gap-4 p-4 rounded transition-colors;
+}
+
+.play-btn {
+  @apply p-3 bg-spotify-green-light rounded-full hover:scale-110 transition-transform;
+}
+
+.carousel-nav-btn {
+  @apply p-2 rounded-full hover:bg-spotify-gray w-10 h-10 flex items-center justify-center;
+}

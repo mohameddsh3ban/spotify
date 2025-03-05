@@ -1,7 +1,37 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 import { SpotifyApiService } from './spotify-api.service';
-
+interface RecentlyPlayedResponse {
+    items: Array<{
+      track: any; // Replace with your track interface
+      played_at: string;
+      context: any;
+    }>;
+    next: string | null;
+    cursors: {
+      after: string;
+      before: string;
+    };
+  }
+  
+  interface AvailableGenresResponse {
+    genres: string[];
+  }
+  
+  interface NewReleasesResponse {
+    albums: {
+      items: any[]; // Replace with your album interface
+      total: number;
+    };
+  }
+  
+  interface FeaturedPlaylistsResponse {
+    playlists: {
+      items: any[]; // Replace with your playlist interface
+      total: number;
+    };
+    message?: string;
+  }
 @Injectable({
     providedIn: 'root'
 })
@@ -191,4 +221,65 @@ async checkIsSaved(trackId: string): Promise<boolean> {
         if (options.offset) params = params.set('offset', options.offset.toString());
         return this.apiService.spotifyApiCall('get', endpoint, { params });
     }
+     // Get user's recently played tracks
+  async getRecentlyPlayedTracks(limit: number = 20): Promise<RecentlyPlayedResponse> {
+    try {
+      const params = new URLSearchParams({ limit: limit.toString() });
+      return await this.apiService.spotifyApiCall(
+        'get',
+        `me/player/recently-played?${params}`
+      );
+    } catch (error) {
+      console.error('Error fetching recently played tracks:', error);
+      return { items: [],next:null, cursors: { after: '', before: '' } };
+    }
+  }
+
+  // Get available genre seeds
+  async getAvailableGenres(): Promise<AvailableGenresResponse> {
+    try {
+      return await this.apiService.spotifyApiCall(
+        'get',
+        'recommendations/available-genre-seeds'
+      );
+    } catch (error) {
+      console.error('Error fetching available genres:', error);
+      return { genres: [] };
+    }
+  }
+
+  // Get new releases
+  async getNewReleases(limit: number = 10, country: string = 'US'): Promise<NewReleasesResponse> {
+    try {
+      const params = new URLSearchParams({
+        limit: limit.toString(),
+        country: country
+      });
+      return await this.apiService.spotifyApiCall(
+        'get',
+        `browse/new-releases?${params}`
+      );
+    } catch (error) {
+      console.error('Error fetching new releases:', error);
+      return { albums: { items: [], total: 0 } };
+    }
+  }
+
+  // Get featured playlists
+  async getFeaturedPlaylists(limit: number = 10, country: string = 'US'): Promise<FeaturedPlaylistsResponse> {
+    try {
+      const params = new URLSearchParams({
+        limit: limit.toString(),
+        country: country
+      });
+      return await this.apiService.spotifyApiCall(
+        'get',
+        `browse/featured-playlists?${params}`
+      );
+    } catch (error) {
+      console.error('Error fetching featured playlists:', error);
+      return { playlists: { items: [], total: 0 } };
+    }
+  }
+
 }

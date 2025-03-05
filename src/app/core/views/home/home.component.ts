@@ -1,224 +1,195 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { HeroComponent } from '../../components/hero/hero.component';
+import { Component, OnInit, inject, signal, ViewChild, ElementRef } from '@angular/core';
 import { SpotifyService } from '../../services/spotify.service';
+import { SpotifyPlaylistService } from '../../services/spotify-playlist.service';
 import { AlbumListComponent } from '../../components/album-list/album-list.component';
 import { PlaylistListComponent } from '../../components/playlist-list/playlist-list.component';
-import { SpotifyPlaylistService } from '../../services/spotify-playlist.service';
-import { NgIf, CommonModule } from '@angular/common';
 import { LoadingComponent } from '../../components/loading/loading.component';
-import { IAlbum } from '../../model/IAlbum.model';
 import { IPlaylist } from '../../model/IPlaylist.model';
+import { IAlbum } from '../../model/IAlbum.model';
+import { ITrack } from '../../model/ITrack.model';
+import { IGenre } from '../../model/IGenre.model';
+import { SpotifyPlayerService } from '../../services/spotify-player.service';
+import { RouterLink } from '@angular/router';
+import { NgForOf } from '@angular/common';
+import { IArtist } from '../../model/IArtist.model';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [ AlbumListComponent, PlaylistListComponent, CommonModule],
+  imports: [AlbumListComponent, PlaylistListComponent, RouterLink, LoadingComponent ,NgForOf,RouterLink],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
-  private spotifyService = inject(SpotifyService);
-  private spotifyPlaylistService = inject(SpotifyPlaylistService);
+  @ViewChild('newReleasesCarousel') newReleasesCarousel!: ElementRef<HTMLElement>;
 
-  // Loading state
-  isLoading = true;
-  totalComponentsToLoad = 7; // Hero + 2 album lists + 4 playlist lists
-  loadedComponents = 0;
+  private spotify = inject(SpotifyService);
+  private playlistService = inject(SpotifyPlaylistService);
+  private playerService = inject(SpotifyPlayerService);
 
-  // Featured Sections Data
-  newReleases: IAlbum[] = [];
-  trending: IAlbum[] = [];
-  topMixes: IPlaylist[] = [];
+  // State signals
+  isLoading = signal(true);
+  errorMessage = signal<string | null>(null);
+  recentPlaylists = signal<IPlaylist[]>([]);
+  personalizedPlaylists = signal<IPlaylist[]>([]);
+  newReleases = signal<IAlbum[]>([]);
+  genres = signal<IGenre[]>([]);
+  recentTracks = signal<ITrack[]>([]);
 
-  // Genre & Mood Playlists Data
-  madeForYou: IPlaylist[] = [];
-  moodPlaylists: IPlaylist[] = [];
-  discoverNewMusic: IPlaylist[] = [];
-
-  // Defer flags
-  newReleasesLoaded = false;
-  trendingLoaded = false;
-  topMixesLoaded = false;
-  madeForYouLoaded = false;
-  moodPlaylistsLoaded = false;
-  discoverNewMusicLoaded = false;
-
-  ngOnInit(): void {
-    this.loadHomeData();
+  async ngOnInit() {
+    await this.loadAllData();
   }
 
-  async loadHomeData(): Promise<void> {
+  async loadAllData() {
     try {
-      // Fetch all data concurrently
-      const [
-        newReleases,
-        trending,
-        topMixes,
-        madeForYou,
-        moodPlaylists,
-        discoverNewMusic
-      ] = await Promise.all([
+      const [recent, personalized, releases, genreData, tracks] = await Promise.all([
+        this.getRecentPlaylists(),
+        this.getPersonalizedPlaylists(),
         this.getNewReleases(),
-        this.getTrending(),
-        this.getTopMixes(),
-        this.getMadeForYouPlaylists(),
-        this.getMoodPlaylists(),
-        this.getDiscoverNewMusicPlaylists()
+        this.getGenres(),
+        this.getRecentlyPlayed()
       ]);
 
-      // Assign data and set defer flags
-      this.newReleases = newReleases;
-      this.newReleasesLoaded = true;
+      this.recentPlaylists.set(recent);
+      this.personalizedPlaylists.set(personalized);
+      this.newReleases.set(releases);
+      this.genres.set(genreData);
+      this.recentTracks.set(tracks);
+      this.isLoading.set(false);
 
-      this.trending = trending;
-      this.trendingLoaded = true;
-
-      this.topMixes = topMixes;
-      this.topMixesLoaded = true;
-
-      this.madeForYou = madeForYou;
-      this.madeForYouLoaded = true;
-
-      this.moodPlaylists = moodPlaylists;
-      this.moodPlaylistsLoaded = true;
-
-      this.discoverNewMusic = discoverNewMusic;
-      this.discoverNewMusicLoaded = true;
-
-      // Increment for hero component (assuming it loads instantly or has its own logic)
-      this.onComponentLoaded(); // For <app-hero>
     } catch (error) {
       console.error('Error loading home data:', error);
-      // Set all flags to true to proceed even on error
-      this.newReleasesLoaded = this.trendingLoaded = this.topMixesLoaded = true;
-      this.madeForYouLoaded = this.moodPlaylistsLoaded = this.discoverNewMusicLoaded = true;
-      this.onComponentLoaded(); // Ensure hero is counted
+      this.errorMessage.set('Failed to load data. Please try again later.');
+      this.isLoading.set(false);
     }
   }
 
-  onComponentLoaded() {
-    this.loadedComponents++;
-    if (this.loadedComponents >= this.totalComponentsToLoad) {
-      this.isLoading = false;
-      console.log('All components and assets initialized!');
-    }
-  }
-
-  // Data Fetching Methods
-  async getNewReleases(): Promise<IAlbum[]> {
+  // Data fetching methods with proper typing
+  private async getRecentPlaylists(): Promise<IPlaylist[]> {
     try {
-      const response = await this.spotifyService.searchForItem('new releases', ['album'], { limit: 10 });
-      if (response?.albums?.items) {
-        return response.albums.items.map((item: any) => ({
-          name: item.name,
-          artist: item.artists.map((artist: any) => artist.name).join(', '),
-          imageUrl: item.images[0]?.url || '',
-          id: item.id
-        }));
-      }
-      console.warn('Unexpected response format for new releases:', response);
-      return [];
+      const response = await this.playlistService.getCurrentUserPlaylists({ limit: 10 });
+      return response.items.map((item:any) => this.mapPlaylist(item));
     } catch (error) {
-      console.error('Error fetching New Releases:', error);
+      console.error('Error fetching recent playlists:', error);
       return [];
     }
   }
 
-  async getTrending(): Promise<IAlbum[]> {
+  private async getPersonalizedPlaylists(): Promise<IPlaylist[]> {
     try {
-      const response = await this.spotifyService.searchForItem('trending', ['album'], { limit: 10 });
-      if (response?.albums?.items) {
-        return response.albums.items.map((item: any) => ({
-          name: item.name,
-          artist: item.artists.map((artist: any) => artist.name).join(', '),
-          imageUrl: item.images[0]?.url || '',
-          id: item.id
-        }));
-      }
-      console.warn('Unexpected response format for trending albums:', response);
-      return [];
+      const response = await this.spotify.getFeaturedPlaylists()
+      return response.playlists.items
+        .filter(item => item.images !== null && item.images.length > 0) 
+        .map(item => this.mapPlaylist(item))
+        
+
     } catch (error) {
-      console.error('Error fetching Trending:', error);
+      console.error('Error fetching personalized playlists:', error);
       return [];
     }
   }
 
-  async getTopMixes(): Promise<IPlaylist[]> {
+  private async getNewReleases(): Promise<IAlbum[]> {
     try {
-      const response = await this.spotifyService.searchForItem('top mixes', ['playlist'], { limit: 10 });
-      if (response?.playlists?.items) {
-        const unNullItems = response.playlists.items.filter((item: any) => item !== null);
-        return unNullItems.map((item: any) => ({
-          name: item.name,
-          description: item.description || 'A collection of top mixes',
-          imageUrl: item.images[0]?.url || '',
-          id: item.id
-        }));
-      }
-      console.warn('Unexpected response format for top mixes playlists:', response);
-      return [];
+      const response = await this.spotify.getNewReleases();
+      return response.albums.items.map(item => this.mapAlbum(item));
     } catch (error) {
-      console.error('Error fetching Top Mixes:', error);
+      console.error('Error fetching new releases:', error);
       return [];
     }
   }
 
-  async getMadeForYouPlaylists(): Promise<IPlaylist[]> {
+  private async getGenres(): Promise<IGenre[]> {
     try {
-      const response = await this.spotifyPlaylistService.getCurrentUserPlaylists({ limit: 10 });
-      if (response?.items) {
-        return response.items.map((item: any) => ({
-          name: item.name,
-          description: item.description || '',
-          imageUrl: item.images[0]?.url || '',
-          id: item.id
-        }));
-      }
-      console.warn('Unexpected response format for made for you playlists:', response);
-      return [];
+      const response = await this.spotify.getAvailableGenres();
+      return response.genres.map(name => ({
+        id: name.toLowerCase().replace(/\s+/g, '-'),
+        name,
+        imageUrl: this.getGenreImage(name)
+      }));
     } catch (error) {
-      console.error('Error fetching Made For You Playlists:', error);
+      console.error('Error fetching genres:', error);
       return [];
     }
   }
 
-  async getMoodPlaylists(): Promise<IPlaylist[]> {
+  private async getRecentlyPlayed(): Promise<ITrack[]> {
     try {
-      const response = await this.spotifyService.searchForItem('mood', ['playlist'], { limit: 10 });
-      if (response?.playlists?.items) {
-        const unNullItems = response.playlists.items.filter((item: any) => item !== null);
-        return unNullItems.map((item: any) => ({
-          name: item.name,
-          description: item.description || '',
-          imageUrl: item.images[0]?.url || '',
-          id: item.id
-        }));
-      }
-      console.warn('Unexpected response format for mood playlists:', response);
-      return [];
+      const response = await this.spotify.getRecentlyPlayedTracks();
+      return response.items.map(item => this.mapTrack(item.track));
     } catch (error) {
-      console.error('Error fetching Mood Playlists:', error);
+      console.error('Error fetching recently played tracks:', error);
       return [];
     }
   }
 
-  async getDiscoverNewMusicPlaylists(): Promise<IPlaylist[]> {
-    try {
-      const response = await this.spotifyService.searchForItem('discover new music', ['playlist'], { limit: 10 });
-      if (response?.playlists?.items) {
-        const unNullItems = response.playlists.items.filter((item: any) => item !== null);
-        return unNullItems.map((item: any) => ({
-          name: item.name,
-          description: item.description || '',
-          imageUrl: item.images[0]?.url || '',
-          id: item.id
-        }));
-      }
-      console.warn('Unexpected response format for discover new music playlists:', response);
-      return [];
-    } catch (error) {
-      console.error('Error fetching Discover New Music Playlists:', error);
-      return [];
+  // Proper type mapping functions
+  private mapPlaylist(item: any): IPlaylist {
+    return item as IPlaylist
+  }
+
+  private mapAlbum(item: any): IAlbum {
+    return  item as IAlbum
+  }
+
+  private mapTrack(item: any): ITrack {
+    return  item as ITrack
+  }
+
+  // Player controls
+  playPlaylist(playlistId: string) {
+    this.playerService.playPlaylistContext(`spotify:playlist:${playlistId}`, 0);
+  }
+
+  playAlbum(albumId: string) {
+    this.playerService.playAlbumContext(`spotify:album:${albumId}`, 0);
+  }
+
+  playTrack(track: ITrack) {
+    console.log(track.uri);
+    this.playerService.playTrackContext(track.uri);
+  }
+
+  // Carousel controls
+  scrollLeft() {
+    this.scrollCarousel(-300);
+  }
+
+
+  scrollRight() {
+    this.scrollCarousel(300);
+  }
+
+  private scrollCarousel(amount: number) {
+    if (this.newReleasesCarousel?.nativeElement) {
+      this.newReleasesCarousel.nativeElement.scrollBy({
+        left: amount,
+        behavior: 'smooth'
+      });
     }
   }
+
+  // Genre image helper
+  private getGenreImage(name: string): string {
+    const genreImages: { [key: string]: string } = {
+      rock: '/assets/genres/rock.jpg',
+      pop: '/assets/genres/pop.jpg',
+      jazz: '/assets/genres/jazz.jpg',
+      // Add more genre images as needed
+    };
+    return genreImages[name.toLowerCase()] || '/assets/genres/default.jpg';
+  }
+
+  // Featured play handler
+  playFeatured() {
+    const relases = this.newReleases().length > 0 ? this.newReleases() : this.recentTracks().length > 0 ? this.recentTracks() : this.recentPlaylists().length > 0 ? this.recentPlaylists() : [];
+    if (relases.length > 0 && relases[0].id) {
+      this.playAlbum(relases[0].id);
+    }
+  }
+  // get the artist name from the track object
+  getArtist(artists: IArtist[]): string {
+    return artists && artists.length > 0 ? artists[0].name : 'Unknown';
+  }
+  
 }

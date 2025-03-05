@@ -1,0 +1,84 @@
+<!-- artist-page.component.html -->
+<div class="bg-[#121212] text-white h-full overflow-y-auto p-6 md:p-8" *ngIf="!isLoading && !error">
+    <!-- Artist Header -->
+    <div class="flex flex-col md:flex-row items-start gap-6 mb-8">
+      <img [src]="artist.images[0]?.url" 
+           alt="{{ artist.name }}" 
+           class="w-48 h-48 rounded-full object-cover shadow-xl">
+      
+      <div class="flex flex-col justify-center">
+        <h1 class="text-4xl md:text-6xl font-bold mb-4">{{ artist.name }}</h1>
+        
+        <div class="flex items-center gap-4 text-gray-400">
+          <span class="flex items-center gap-1">
+            <i class="fas fa-users"></i>
+            {{ artist.followers.total.toLocaleString() }} followers
+          </span>
+          <span class="flex items-center gap-1">
+            <i class="fas fa-star"></i>
+            {{ getPopularityStars(artist.popularity) }}
+          </span>
+        </div>
+  
+        <div class="mt-2 flex flex-wrap gap-2">
+          <span *ngFor="let genre of artist.genres" 
+                class="px-3 py-1 bg-[#282828] rounded-full text-sm">
+            {{ genre }}
+          </span>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Top Tracks -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold mb-4">Popular</h2>
+      <div class="space-y-2">
+        <div *ngFor="let track of topTracks; let i = index" 
+             class="flex items-center gap-4 p-3 hover:bg-[#282828] rounded cursor-pointer"
+             (click)="playTrack(track)">
+          <span class="text-gray-400 w-4">{{ i + 1 }}</span>
+          <div class="flex-1">
+            <p class="font-medium">{{ track.name }}</p>
+            <p class="text-gray-400 text-sm">
+              {{ track.artists[0].name }} • {{ track.album.name }}
+            </p>
+          </div>
+          <span class="text-gray-400">{{ formatDuration(track.duration_ms) }}</span>
+        </div>
+      </div>
+    </section>
+  
+    <!-- Albums & Singles -->
+    <section>
+      <h2 class="text-2xl font-bold mb-4">Discography</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div *ngFor="let album of albums" 
+             [routerLink]="['/album', album.id]" 
+             class="p-4 bg-[#181818] rounded hover:bg-[#282828] cursor-pointer">
+         @if(album.images){
+            <img [src]="album.images[0].url" 
+            alt="{{ album.name }}" 
+            class="w-full aspect-square object-cover mb-2 rounded">  
+         }
+         
+          <p class="font-medium truncate">{{ album.name }}</p>
+          <p class="text-gray-400 text-sm">
+            {{ album.release_date | date:'yyyy' }} • {{ album.type }}
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="bg-[#121212] text-white min-h-screen flex items-center justify-center">
+    <app-loading></app-loading>
+  </div>
+  
+  <!-- Error State -->
+  <div *ngIf="error" class="bg-[#121212] text-white min-h-screen flex items-center justify-center">
+    <div class="text-center">
+      <i class="fas fa-exclamation-triangle text-4xl mb-4 text-red-500"></i>
+      <p class="text-xl">{{ error }}</p>
+    </div>
+  </div>

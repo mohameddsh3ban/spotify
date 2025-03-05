@@ -3,7 +3,7 @@
     <div class="flex flex-col md:flex-row items-center justify-start md:items-start gap-6 mb-6 md:mb-8">
         <div class="w-full md:w-96 shadow-2xl">
             @if (track.album.images) {
-                <img [src]="track.album.images[0]?.url || 'https://picsum.photos/300/300'" 
+                <img [src]="track.album.images[0].url || 'https://picsum.photos/300/300'" 
                 alt="{{ track.name }}" 
                 class="rounded-md aspect-square object-cover" />
             }
@@ -32,7 +32,7 @@
             <div class="space-y-2">
                 <p class="text-lg text-spotify-gray">
                     <span>Song • </span>
-                    <a [routerLink]="['/artist', track.artists[0]?.id]" 
+                    <a [routerLink]="['/artist', track.artists[0].id]" 
                        class="hover:underline text-white">
                         {{ getArtistNames(track.artists) }}
                     </a>
@@ -40,11 +40,11 @@
                 
                 <p class="text-lg text-spotify-gray">
                     <span>From </span>
-                    <a [routerLink]="['/album', track.album?.id]" 
+                    <a [routerLink]="['/album', track.album.id]" 
                        class="hover:underline text-white">
-                        {{ track.album?.name }}
+                        {{ track.album.name }}
                     </a>
-                    <span> • {{ track.album?.release_date | date:'yyyy' }}</span>
+                    <span> • {{ track.album.release_date | date:'yyyy' }}</span>
                 </p>
                 
                 <p class="text-lg text-spotify-gray">
@@ -55,14 +55,14 @@
             <!-- Action buttons -->
             <div class="flex items-center space-x-4 mt-6">
                 <button (click)="togglePlayPause()" 
-                        class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full transition duration-300">
-                    <i class="fas fa-play mr-2" *ngIf="!isPlaying"></i>
-                    <i class="fas fa-pause mr-2" *ngIf="isPlaying"></i>
-                    {{ isPlaying ? 'Pause' : 'Play' }}
+                        class="bg-green-500  items-center hover:bg-green-600 text-white font-bold p-4 px-6 aspect-square rounded-full transition duration-300">
+                    <i class="fas fa-play" *ngIf="!isPlaying"></i>
+                    <i class="fas fa-pause" *ngIf="isPlaying"></i>
+            
                 </button>
 
-                <button [class.bg-spotify-green-light]="isLiked" (click)="toggleLike()"  class="text-spotify-gray hover:text-white transition-colors">
-                    <i class="far fa-heart bg-red-300 text-2xl"></i>
+                <button [class.text-red-500]="isLiked" (click)="toggleLike()"  class="text-spotify-gray hover:text-white transition-colors">
+                    <i class="fa-solid fa-heart   text-2xl"></i>
                 </button>
 
             </div>
@@ -74,17 +74,17 @@
         <!-- Album Section -->
         <div class="bg-[#181818] p-6 rounded-lg">
             <div class="flex items-center gap-4 mb-4">
-            @if(track.album?.images){
-                    <img [src]="track.album.images?.[0]?.url || 'https://picsum.photos/300/300'" 
-                    alt="{{ track.album?.name }}" 
-                    class="w-20 h-20 rounded-md" />
+            @if(track.album.images){
+                    <img [routerLink]="['/album', track.album.id]"  [src]="track.album.images[0].url || 'https://picsum.photos/300/300'" 
+                    alt="{{ track.album.name }}" 
+                    class="w-20 h-20 rounded-md cursor-pointer" />
                 }
              
                 <div>
                     <h3 class="font-bold text-lg">Album</h3>
-                    <a [routerLink]="['/album', track.album?.id]" 
+                    <a [routerLink]="['/album', track.album.id]" 
                        class="text-spotify-gray hover:underline">
-                        {{ track.album?.name }}
+                        {{ track.album.name }}
                     </a>
                 </div>
             </div>
@@ -95,7 +95,7 @@
             <div class="bg-[#181818] p-6 rounded-lg">
                 <h3 class="font-bold text-lg mb-4">Artist</h3>
                 <div class="flex items-center gap-4">
-                    <img [src]="artist.images?.[0]?.url || 'https://picsum.photos/300/300'" 
+                    <img [src]="artist.images[0].url || 'https://picsum.photos/300/300'" 
                          alt="{{artist.name }}" 
                          class="w-20 h-20 rounded-full" />
                     <div>
@@ -114,7 +114,7 @@
         <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-spotify-gray">
             <div class="bg-[#181818] p-4 rounded-lg">
                 <p class="text-sm">Release Date</p>
-                <p class="text-white">{{ track.album?.release_date | date:'mediumDate' }}</p>
+                <p class="text-white">{{ track.album.release_date | date:'mediumDate' }}</p>
             </div>
             
             <div class="bg-[#181818] p-4 rounded-lg">

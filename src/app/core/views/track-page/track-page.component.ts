@@ -11,7 +11,7 @@ import { IArtist } from '../../model/IArtist.model';
 @Component({
   selector: 'app-track-page',
   standalone: true,
-  imports: [NgIf, NgFor, LoadingComponent, RouterLink, CommonModule],
+  imports: [NgIf, LoadingComponent, RouterLink, CommonModule],
   templateUrl: './track-page.component.html',
   styleUrl: './track-page.component.css'
 })

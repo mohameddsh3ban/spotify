@@ -42,12 +42,12 @@
           class="hover:bg-[#282828] transition-colors w-full duration-200 cursor-pointer"> <!-- Slightly darker hover -->
           <td class="px-4 py-3 text-gray-400">{{ i + 1 }}</td>  <!-- Muted numbering -->
           <td class="px-4 py-3">
-            <img *ngIf="track.album?.images" class="w-10 h-10 rounded object-cover" [src]="track.album?.images"  alt="{{ track.name }}" /> <!-- Reduced image size-->
+            <img *ngIf="track.album?.images" class="w-10 h-10 rounded object-cover" [src]="track.album.images"  alt="{{ track.name }}" /> <!-- Reduced image size-->
             <img *ngIf="!track.album?.images" class="w-10 h-10 rounded object-cover" src="../../../../assets/imgs/image.png" alt="{{ track.name }}" />
           </td>
           <td class="px-4  py-3">{{ track.name }}</td>
           <td class="px-4 py-3">{{ getArtistNames(track) }}</td>
-          <td class="px-4 py-3">{{ track.album?.name }}</td>
+          <td class="px-4 py-3">{{ track.album.name }}</td>
         </tr>
       </tbody>
     </table>

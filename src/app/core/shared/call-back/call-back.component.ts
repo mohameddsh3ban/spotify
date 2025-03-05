@@ -3,13 +3,13 @@ import { ActivatedRoute } from '@angular/router';
 
 import { CommonModule } from '@angular/common';
 import { SpotifyAuthService } from '../../services/spotify-auth.service';
+import { LoadingComponent } from "../../components/loading/loading.component";
 
 
 @Component({
     selector: 'app-callback',
-    standalone: true,
-    imports: [CommonModule],
-    template: '<p>Handling Spotify authentication callback...</p>' // Simple loading message
+    imports: [CommonModule, LoadingComponent],
+    templateUrl:'./call-back.component.html'
 })
 export class CallbackComponent implements OnInit {
 

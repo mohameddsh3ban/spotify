@@ -9,6 +9,7 @@ import { PlaylistPageComponent } from './core/views/playlist-page/playlist-page.
 import { AlbumPageComponent } from './core/views/album-page/album-page.component';
 import { SearchPageComponent } from './core/views/search-page/search-page.component';
 import { TrackPageComponent } from './core/views/track-page/track-page.component';
+import { ArtistPageComponent } from './core/views/artist-page/artist-page.component';
 
 
 export const routes: Routes = [
@@ -20,5 +21,6 @@ export const routes: Routes = [
     {path:'album/:id', component:AlbumPageComponent, canActivate: [AuthGuard]}, //Protect album page
     {path :'search', component:SearchPageComponent, canActivate: [AuthGuard]},// Route to SearchPageComponent with query.
     {path:'track/:id', component:TrackPageComponent, canActivate: [AuthGuard]},
+    {path:'artist/:id', component:ArtistPageComponent, canActivate: [AuthGuard]},
     { path: '', redirectTo: '/home', pathMatch: 'full' }
 ];

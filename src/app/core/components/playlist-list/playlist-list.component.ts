@@ -1,6 +1,7 @@
-import { Component, input } from '@angular/core';
+import { Component, EventEmitter, inject, input, Output } from '@angular/core';
 import { IPlaylist } from '../../model/IPlaylist.model';
 import { RouterLink } from '@angular/router';
+import { SpotifyPlayerService } from '../../services/spotify-player.service';
 
 
 @Component({
@@ -10,10 +11,16 @@ import { RouterLink } from '@angular/router';
   styleUrl: './playlist-list.component.css'
 })
 export class PlaylistListComponent   {
+  @Output() play = new EventEmitter<string>();
 playlists = input.required<IPlaylist[]>();
 ngOnInit() {
-  console.log(this.playlists());
+  console.log('playlist ',
+    this.playlists());
 }
+
+ playPlaylist(playlistId: string) {
+    this.play.emit(playlistId);
+  }
 
 
 }

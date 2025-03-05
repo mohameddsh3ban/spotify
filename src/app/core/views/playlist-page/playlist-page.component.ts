@@ -13,7 +13,7 @@ import { NgFor, NgIf } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { LoadingComponent } from '../../components/loading/loading.component';
 import { SpotifyPlayerService } from '../../services/spotify-player.service'; // Import SpotifyPlayerService
-import { SpotifyService } from '../../services/spotify.service';
+
 
 @Component({
   selector: 'app-playlist-page',
