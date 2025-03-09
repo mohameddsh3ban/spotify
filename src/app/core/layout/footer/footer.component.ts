@@ -49,6 +49,7 @@ export class FooterComponent implements OnInit, OnDestroy, AfterViewInit {
   progressPercent = signal(0);
   isLiked = false;
 onRepeat = 'off';
+played = false;
   @ViewChild('progressBar', { static: false }) progressBar:
     | ElementRef
     | undefined;
@@ -179,6 +180,10 @@ onRepeat = 'off';
 
   //----Player Methods ---- //
   togglePlay(): void {
+    if (!this.played&& this.currentTrack) {
+this.playerService.playTrackContext(this.currentTrack.uri);
+this.played = true
+    }
       this.playerService.togglePlay();
   }
 
