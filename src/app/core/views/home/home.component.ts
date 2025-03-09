@@ -53,7 +53,6 @@ export class HomeComponent implements OnInit {
       this.recentPlaylists.set(recent);
       this.personalizedPlaylists.set(personalized);
       this.newReleases.set(releases);
-      console.log(personalized);
       this.genres.set(genreData);
       this.recentTracks.set(tracks);
       this.isLoading.set(false);
@@ -69,7 +68,10 @@ export class HomeComponent implements OnInit {
   private async getRecentPlaylists(): Promise<IPlaylist[]> {
     try {
       const response = await this.playlistService.getCurrentUserPlaylists({ limit: 10 });
-      return response.items.map((item:any) => this.mapPlaylist(item));
+      return response.items
+      .filter((item: any) => item.images !== null && item.images.length > 0) 
+      .map((item:any) => this.mapPlaylist(item))
+      ;
     } catch (error) {
       console.error('Error fetching recent playlists:', error);
       return [];
@@ -103,11 +105,12 @@ export class HomeComponent implements OnInit {
   private async getGenres(): Promise<IGenre[]> {
     try {
       const response = await this.spotify.getAvailableGenres();
+      console.log(response.genres)
       return response.genres.map(name => ({
         id: name.toLowerCase().replace(/\s+/g, '-'),
         name,
         imageUrl: this.getGenreImage(name)
-      }));
+      }))
     } catch (error) {
       console.error('Error fetching genres:', error);
       return [];
@@ -117,7 +120,12 @@ export class HomeComponent implements OnInit {
   private async getRecentlyPlayed(): Promise<ITrack[]> {
     try {
       const response = await this.spotify.getRecentlyPlayedTracks();
-      return response.items.map(item => this.mapTrack(item.track));
+      return response.items
+      .filter((item, index, self) => 
+        index === self.findIndex((t) => t.track.id === item.track.id))
+      .map(item => this.mapTrack(item.track))
+
+
     } catch (error) {
       console.error('Error fetching recently played tracks:', error);
       return [];

@@ -6,19 +6,22 @@ import {
   OnInit,
 } from '@angular/core';
 import { ITrack } from '../../model/ITrack.model';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SpotifyPlaylistService } from '../../services/spotify-playlist.service';
 import { IPlaylist } from '../../model/IPlaylist.model';
 import { NgFor, NgIf } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { LoadingComponent } from '../../components/loading/loading.component';
 import { SpotifyPlayerService } from '../../services/spotify-player.service'; // Import SpotifyPlayerService
+import { SpotifyService } from '../../services/spotify.service';
+import { ArtistNamesPipe } from "../../shared/pipes/artist-names.pipe";
+import { DurationPipe } from "../../shared/pipes/duration.pipe";
 
 
 @Component({
   selector: 'app-playlist-page',
   standalone: true,
-  imports: [NgFor, NgIf, LoadingComponent],
+  imports: [NgFor, NgIf, LoadingComponent, RouterLink, DurationPipe],
   templateUrl: './playlist-page.component.html',
   styleUrl: './playlist-page.component.css',
 })
@@ -33,7 +36,8 @@ export class PlaylistPageComponent implements OnInit, OnDestroy {
 
   private route = inject(ActivatedRoute);
   private spotifyService = inject(SpotifyPlaylistService);
-
+  private spotifySavedService = inject(SpotifyService);
+isSaved = false;
   private player = inject(SpotifyPlayerService); // Inject SpotifyPlayerService
 
   playlistId: string | null = null;
@@ -46,12 +50,18 @@ export class PlaylistPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.paramMapSubscription = this.route.paramMap.subscribe((params) => {
       const playlistId = params.get('id');
-      if (playlistId) {
+      if (playlistId &&playlistId != 'saved') {
+        console.log(playlistId ,'called');
         this.playlistId = playlistId;
         this.loadPlaylistData(playlistId).then((data) => {
           console.log(this.tracks);
         });
-      } else {
+      }else if(playlistId && playlistId == 'saved'){
+        console.log(playlistId ,'called');
+this.loadUserSavedTracks()
+      }
+       else {
+        console.log(playlistId ,'called');
         console.error('Playlist ID is missing.');
       }
     });
@@ -72,6 +82,31 @@ export class PlaylistPageComponent implements OnInit, OnDestroy {
       ]);
     } catch (error) {
       console.error('Error loading playlist data:', error);
+    }
+  }
+  async loadUserSavedTracks(): Promise<void> {
+    this.isSaved = true;
+
+    try {
+      const savedTracks = await this.spotifySavedService.getUserSavedTracks();
+      console.log(savedTracks);
+      this.tracks = savedTracks.items.map((item: any) => ({
+        id: item.track.id,
+        name: item.track.name,
+        artists: item.track.artists.map((artist: any) => ({ 
+          id: artist.id, 
+          name: artist.name 
+        })),
+        album: {
+          name: item.track.album.name,
+          images: item.track.album.images?.[0]?.url || null
+        },
+        uri: item.track.uri,
+        duration_ms: item.track.duration_ms
+      }));
+      console.log(this.tracks);
+    } catch (error) {
+      console.error('Error loading saved tracks:', error);
     }
   }
 
@@ -111,6 +146,14 @@ export class PlaylistPageComponent implements OnInit, OnDestroy {
   }
 
   togglePlayPause(): void {
+    if(this.isSaved , !this.isPlaying){
+this.playSavedTrack(this.tracks[0], 0)
+this.isPlaying = !this.isPlaying;
+    }else if(this.isSaved && this.isPlaying){
+
+      this.player.pauseTrack();
+      this.isPlaying = !this.isPlaying;
+    }
     if (this.tracks.length === 0 || !this.playlistId) return;
 
     if (this.isPlaying) {
@@ -123,6 +166,7 @@ export class PlaylistPageComponent implements OnInit, OnDestroy {
         this.currentTrackUri = this.tracks[0]?.uri;
       });
     }
+
   }
 
   playTrack(track: ITrack, index: number): void {
@@ -135,6 +179,16 @@ export class PlaylistPageComponent implements OnInit, OnDestroy {
       this.currentTrackUri = track.uri;
     });
   }
+  playSavedTrack(track: ITrack, index: number): void {
+    if (this.isSaved) {
+      // Get all track URIs from saved tracks
+      const trackUris = this.tracks.map(t => t.uri);
+
+      
+      this.player.playTracks(trackUris, index)
+    }
+  }
+  
   isCurrentlyPlaying(track: ITrack): boolean {
     return this.isPlaying && this.currentTrackUri === track.uri;
   }

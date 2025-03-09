@@ -199,10 +199,105 @@
         </div>
     </div>
 
-</footer>}@else{}
+</footer>}@else{
+    <footer class="bg-black hidden sticky bottom-0   sm:flex justify-center items-center p-2 w-full">
+        <app-loading class="translate-y-4 scale-75"></app-loading>
+    </footer>
 
-<footer title="small-screen" class="bg-black p-4 flex sm:hidden justify-between items-center fixed   bottom-0 w-full">
-    <button title="home" class="flex justify-center items-center flex-col">
+}
+@if(currentTrack){
+    <div class="fixed sm:hidden bottom-20 scale-[98%] left-0 right-0 bg-spotify-green-lighter bg-opacity-80  border-t rounded-t-3xl border-spotify-green-lighter z-50 p-2">
+        <!-- Track Info & Controls -->
+        <div class="flex items-center justify-between gap-2">
+          <!-- Track Info -->
+          <div class="flex items-center  justify-center gap-2 flex-1 min-w-0">
+            <!-- Album Art -->
+            <div class="relative">
+              @if(currentTrack.album.images?.[0]?.url) {
+                <img [src]="currentTrack.album.images?.[0]?.url" 
+                     class="w-12 h-12 rounded-md object-cover"
+                     alt="Album cover">
+              } @else {
+                <div class="w-12 h-12 rounded-md bg-spotify-gray-dark"></div>
+              }
+            </div>
+      
+            <!-- Track Details -->
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-white truncate" [routerLink]=" ['/track/'+currentTrack.id]">{{ currentTrack.name || 'Unknown Track' }}</div>
+              <div class="text-xs text-spotify-white truncate" >
+                @for (item of currentTrack.artists; track $index) {
+                  <span *ngIf="$index > 0">, </span>
+                  <span class="" [routerLink]="['/artist', item.id]">{{ item.name }}</span>
+                }
+              </div>
+              
+            </div>
+                  <!-- Like Button -->
+                  <button (click)="ToggleLikeTrack()" class="text-spotify-gray hover:text-white">
+                    @if(!isLiked) {
+                      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                      </svg>
+                    } @else {
+                      <svg class="w-5 h-5 text-spotify-green-light" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                      </svg>
+                    }
+                  </button>
+          </div>
+      
+          <!-- Controls -->
+          <div class="flex items-center gap-4">
+      
+                    <!-- Previous Track -->
+                    <button (click)="playPreviousTrack()" title="Previous Track"
+                    class="text-spotify-gray group hover:text-white transition-colors">
+                    <svg data-encore-id="icon" role="img" aria-hidden="true" class="w-4 h-4" viewBox="0 0 16 16">
+                        <path class="fill-white group-hover:fill-white duration-200 "
+                            d="M3.3 1a.7.7 0 0 1 .7.7v5.15l9.95-5.744a.7.7 0 0 1 1.05.606v12.575a.7.7 0 0 1-1.05.607L4 9.149V14.3a.7.7 0 0 1-.7.7H1.7a.7.7 0 0 1-.7-.7V1.7a.7.7 0 0 1 .7-.7h1.6z">
+                        </path>
+                    </svg>
+                </button>
+      
+            <!-- Play/Pause -->
+            <button (click)="togglePlay()" class="bg-white rounded-full p-2">
+              <svg class="w-6 h-6 text-black" fill="currentColor" viewBox="0 0 24 24">
+                @if(isPlaying) {
+                  <path d="M6 4h4v16H6zm8 0h4v16h-4z"/>
+                } @else {
+                  <path d="M8 5v14l11-7z"/>
+                }
+              </svg>
+            </button>
+                  <!-- Next Track -->
+                  <button (click)="playNextTrack()" title="Next Track"
+                  class="text-white group hover:text-white transition-colors">
+                  <svg data-encore-id="icon" role="img" aria-hidden="true"
+                      class="w-4 h-4 rotate-180 fill-current group-hover:fill-white duration-200" viewBox="0 0 16 16">
+                      <path
+                          d="M3.3 1a.7.7 0 0 1 .7.7v5.15l9.95-5.744a.7.7 0 0 1 1.05.606v12.575a.7.7 0 0 1-1.05.607L4 9.149V14.3a.7.7 0 0 1-.7.7H1.7a.7.7 0 0 1-.7-.7V1.7a.7.7 0 0 1 .7-.7h1.6z">
+                      </path>
+                  </svg>
+              </button>
+          </div>
+        </div>
+      
+        <!-- Progress Bar -->
+         
+            <div #mobileProgressBar (click)="mobileSeekTo($event)" 
+                class="relative cursor-pointer mt-2   group duration-200 w-full h-1 bg-spotify-gray-dark rounded-full">
+                <div class="absolute duration-200 flex items-center justify-end group-hover:bg-spotify-green-light h-full bg-white rounded-full"
+                    [style.width.%]="progressPercent()">
+                    <span class=" p-1.5 z-30  duration-200  absolute translate-x-2  group-hover:bg-white rounded-full">
+                    </span>
+                </div>
+
+            </div>
+      </div>
+}
+<footer title="small-screen" class="bg-black p-4 border-t border-spotify-lightBlack flex sm:hidden justify-between items-center fixed   bottom-0 w-full">
+    <button title="home" routerLink="/home" class="flex justify-center items-center flex-col">
         <svg data-encore-id="icon" role="img" aria-hidden="true" class="w-6 h-6" viewBox="0 0 24 24">
             <path class="fill-spotify-gray"
                 d="M12.5 3.247a1 1 0 0 0-1 0L4 7.577V20h4.5v-6a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v6H20V7.577l-7.5-4.33zm-2-1.732a3 3 0 0 1 3 0l7.5 4.33a2 2 0 0 1 1 1.732V21a1 1 0 0 1-1 1h-6.5a1 1 0 0 1-1-1v-6h-3v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.577a2 2 0 0 1 1-1.732l7.5-4.33z">
@@ -211,7 +306,7 @@
         <span class="text-spotify-gray text-sm">Home</span>
         <!-- <svg data-encore-id="icon" role="img" aria-hidden="true" class="w-6 h-6" viewBox="0 0 24 24"><path d="M13.5 1.515a3 3 0 0 0-3 0L3 5.845a2 2 0 0 0-1 1.732V21a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-6h4v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V7.577a2 2 0 0 0-1-1.732l-7.5-4.33z"></path></svg> -->
     </button>
-    <button title="search" class="flex justify-center items-center flex-col">
+    <button title="search" [routerLink]="['/mobile/search']" class="flex justify-center items-center flex-col" >
         <svg data-encore-id="icon" role="img" aria-hidden="true" class="w-6 h-6" viewBox="0 0 24 24">
             <path class="fill-spotify-gray"
                 d="M10.533 1.27893C5.35215 1.27893 1.12598 5.41887 1.12598 10.5579C1.12598 15.697 5.35215 19.8369 10.533 19.8369C12.767 19.8369 14.8235 19.0671 16.4402 17.7794L20.7929 22.132C21.1834 22.5226 21.8166 22.5226 22.2071 22.132C22.5976 21.7415 22.5976 21.1083 22.2071 20.7178L17.8634 16.3741C19.1616 14.7849 19.94 12.7634 19.94 10.5579C19.94 5.41887 15.7138 1.27893 10.533 1.27893ZM3.12598 10.5579C3.12598 6.55226 6.42768 3.27893 10.533 3.27893C14.6383 3.27893 17.94 6.55226 17.94 10.5579C17.94 14.5636 14.6383 17.8369 10.533 17.8369C6.42768 17.8369 3.12598 14.5636 3.12598 10.5579Z">
@@ -220,7 +315,7 @@
         <span class="text-spotify-gray text-sm">Search</span>
         <!-- <svg data-encore-id="icon" role="img" aria-hidden="true" class="w-6 h-6" viewBox="0 0 24 24"><path d="M15.356 10.558c0 2.623-2.16 4.75-4.823 4.75-2.664 0-4.824-2.127-4.824-4.75s2.16-4.75 4.824-4.75c2.664 0 4.823 2.127 4.823 4.75z"></path><path d="M1.126 10.558c0-5.14 4.226-9.28 9.407-9.28 5.18 0 9.407 4.14 9.407 9.28a9.157 9.157 0 0 1-2.077 5.816l4.344 4.344a1 1 0 0 1-1.414 1.414l-4.353-4.353a9.454 9.454 0 0 1-5.907 2.058c-5.18 0-9.407-4.14-9.407-9.28zm9.407-7.28c-4.105 0-7.407 3.274-7.407 7.28s3.302 7.279 7.407 7.279 7.407-3.273 7.407-7.28c0-4.005-3.302-7.278-7.407-7.278z"></path></svg> -->
     </button>
-    <button title="library" class="flex justify-center items-center flex-col">
+    <button title="library" class="flex justify-center items-center flex-col" [routerLink]="['/mobile/library']">
         <svg data-encore-id="icon" role="img" aria-hidden="true" class="w-6 h-6" viewBox="0 0 24 24">
             <path class="fill-spotify-gray"
                 d="M14.5 2.134a1 1 0 0 1 1 0l6 3.464a1 1 0 0 1 .5.866V21a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V3a1 1 0 0 1 .5-.866zM16 4.732V20h4V7.041l-4-2.309zM3 22a1 1 0 0 1-1-1V3a1 1 0 0 1 2 0v18a1 1 0 0 1-1 1zm6 0a1 1 0 0 1-1-1V3a1 1 0 0 1 2 0v18a1 1 0 0 1-1 1z">

@@ -1,4 +1,5 @@
 export interface IPlaylist {
+  added_at: string | number | Date;
   collaborative: boolean; // Whether the playlist is collaborative
   description: string; // Description of the playlist
   external_urls: ExternalUrls; // External URLs for the playlist (e.g., Spotify link)

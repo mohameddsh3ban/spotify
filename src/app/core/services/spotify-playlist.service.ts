@@ -7,6 +7,7 @@ import { SpotifyApiService } from './spotify-api.service';
 })
 export class SpotifyPlaylistService {
 
+
     private apiService = inject(SpotifyApiService);
 
     async createPlaylist(userId: string, name: string, options: { public?: boolean; collaborative?: boolean; description?: string } = {}): Promise<any> {
@@ -95,5 +96,10 @@ export class SpotifyPlaylistService {
         const params = new HttpParams().set('ids', ids.join(','));
         return this.apiService.spotifyApiCall('get', endpoint, { params });
     }
+    async getNextPage(url: string): Promise<any> {
+        const response = await this.apiService.spotifyApiCall('get', url);
+        return response;
+   
+      }
 
 }

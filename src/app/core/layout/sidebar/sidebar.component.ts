@@ -18,13 +18,14 @@ import { Router, RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { fromEvent, Subject, takeUntil, throttleTime } from 'rxjs';
 import { SpotifyService } from '../../services/spotify.service';
+import { ListAComponent } from "../../shared/list-a/list-a.component";
 
 
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule, FontAwesomeModule],
+  imports: [CommonModule, RouterModule, FontAwesomeModule, ListAComponent],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
 })
@@ -32,13 +33,13 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('sidebar', { static: false }) sidebarElement!: ElementRef;
  
   spotifySrv = inject(SpotifyService)
-  isExpanded = signal(true);
+  isExpanded = false;
   activeRoute: string = '';
-  sidebarWidth = signal(200); // Initial width
+  sidebarWidth = signal(80); // Initial width
   minWidth = 80; // Minimum width
   maxWidth = 400; // Maximum width
   isResizing = false;
-
+isMobile = signal(window.innerWidth < 768);
   private destroy$ = new Subject<void>(); // RxJS Subject for unsubscribing
 
   constructor(private router: Router , private cdr: ChangeDetectorRef) {}
@@ -75,7 +76,7 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   toggleSidebar(): void {
-    this.isExpanded.set(!this.isExpanded());
+    this.isExpanded = !this.isExpanded;
     if (this.sidebarWidth() < 250) {
       this.sidebarWidth.set(500);
     } else {

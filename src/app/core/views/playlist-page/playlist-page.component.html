@@ -1,59 +1,161 @@
 <!-- playlist-page.component.html -->
-<div class="bg-[#121212] text-white min-h-full h-full overflow-y-auto p-6 md:p-8" *ngIf="playlist">
-  <div class="flex flex-col md:flex-row items-center justify-start md:items-start gap-6 mb-6 md:mb-8">
-    <div class="w-full md:w-64 shadow-2xl">  <!-- Increased shadow -->
-      <img [src]="playlist.images[0].url" alt="{{ playlist.name }}" class="rounded-md aspect-square object-cover" />
-    </div>
-
-    <div class="w-full flex flex-col items-center md:items-start"> <!-- Removed justify-center on smaller screens -->
-      <h1 class="text-4xl md:text-5xl font-extrabold mb-2">{{ playlist.name }}</h1>  <!-- Increased font size -->
-      <p class="text-lg text-spotify-gray mb-4">{{ playlist.description }}</p>  <!-- Increased font size -->
-      <div class="flex items-center space-x-4 mb-4">  <!-- Added wrapper for spacing -->
-        <p class="text-sm text-gray-500">
-          {{ playlist.tracks.total }} tracks
-        </p>
-        <!-- Artist/Creator info can be displayed here, if available in your playlist data -->
+@if (isSaved) {
+  <div class="bg-black text-white min-h-full h-full overflow-y-auto p-6 md:p-8" >
+    <div class="flex flex-col md:flex-row items-center justify-start md:items-start gap-6 mb-6 md:mb-8">
+      <div class="w-full md:w-64 shadow-2xl">  <!-- Increased shadow -->
+        <img src="../../../../assets/imgs/savedMusic.png" alt="savedMusic" class="rounded-md aspect-square object-cover" />
       </div>
-
-      <!-- Play/Pause Button (Spotify-style) -->
-      <button (click)="togglePlayPause()" class="group bg-green-500 aspect-square  hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"> <!-- More padding, rounded full -->
-          <span class="sr-only">{{ isPlaying ? 'Pause' : 'Play' }}</span>  <!-- For accessibility -->
-          <i class="fas fa-play text-black group-hover:text-black inline-block" *ngIf="!isPlaying"></i>  <!-- Icon -->
-          <i class="fas fa-pause text-black group-hover:text-black  inline-block" *ngIf="isPlaying"></i>   <!-- Icon -->
-      </button>
-
+  
+      <div class="w-full flex flex-col items-center md:items-start"> <!-- Removed justify-center on smaller screens -->
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-2">Saved Music</h1>  <!-- Increased font size -->
+        <p class="text-lg text-spotify-gray mb-4"> All the music you've saved </p>  <!-- Increased font size -->
+        <div class="flex items-center space-x-4 mb-4">  <!-- Added wrapper for spacing -->
+          <p class="text-sm text-gray-500">
+            {{ tracks.length }} tracks
+          </p>
+          <!-- Artist/Creator info can be displayed here, if available in your playlist data -->
+        </div>
+  
+        <!-- Play/Pause Button (Spotify-style) -->
+        <button (click)="togglePlayPause()" class="group bg-spotify-green-lighter aspect-square  hover:bg-spotify-green-light text-white font-bold  w-16 h-16 rounded-full transition duration-300 "> <!-- More padull -->
+            <span class="sr-only">{{ isPlaying ? 'Pause' : 'Play' }}</span>  <!-- For accessibility -->
+            <i class="fas fa-play text-black group-hover:text-black inline-block" *ngIf="!isPlaying"></i>  <!-- Icon -->
+            <i class="fas fa-pause text-black group-hover:text-black  inline-block" *ngIf="isPlaying"></i>   <!-- Icon -->
+        </button>
+  
+      </div>
+    </div>
+  
+    <!-- Track List -->
+    <div class="overflow-x-hidden w-full"> <!-- Prevent horizontal overflow -->
+      <table class="w-full">
+        <thead class="sr-only sm:not-sr-only"> <!-- Hide header on mobile -->
+          <tr class="text-left text-sm text-spotify-gray uppercase bg-spotify-black">
+            <th class="px-2 py-3 font-medium w-12">#</th>
+            <th class="px-2 py-3 font-medium">Title</th>
+            <th class="px-2 py-3 font-medium hidden md:table-cell">Artist</th>
+            <th class="px-2 py-3 font-medium hidden lg:table-cell">Album</th>
+            <th class="px-2 py-3 font-medium w-24"><span class="sr-only">Duration</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let track of tracks; let i = index" 
+              class="group border-b border-spotify-lightBlack hover:bg-spotify-green-lighter transition-colors cursor-pointer"
+              (click)="playSavedTrack(track, i)">
+              
+            <!-- Mobile View -->
+            <td class="sm:hidden p-2 w-full">
+              <div class="flex items-center gap-3 w-full">
+                <span class="text-spotify-gray text-sm w-4">{{ i + 1 }}</span>
+                <img [src]="track.album.images || '../../../../assets/imgs/image.png'" 
+                     class="w-12 h-12 rounded object-cover flex-shrink-0"
+                     alt="Album cover">
+                <div class="flex-1 min-w-0">
+                  <p class="text-white text-sm truncate">{{ track.name }}</p>
+                  <div class="text-spotify-gray text-xs  truncate">
+                    {{ track.artists[0].name }}
+                    <span *ngIf="track.artists.length > 1"> +{{ track.artists.length - 1 }}</span>
+                  </div>
+                </div>
+                <div class="text-spotify-gray text-xs">
+                  {{ track.duration_ms | duration }}
+                </div>
+              </div>
+            </td>
+    
+            <!-- Desktop View -->
+            <td class="hidden sm:table-cell px-2 py-3 text-spotify-gray text-sm">
+              {{ i + 1 }}
+            </td>
+            <td class="hidden sm:table-cell px-2 py-3">
+              <div class="flex items-center gap-3">
+                <img [src]="track.album.images || '../../../../assets/imgs/image.png'" 
+                     class="w-10 h-10 rounded object-cover"
+                     alt="Album cover">
+                <p class="text-white truncate hover:underline" [routerLink]="['/track', track.id]">
+                  {{ track.name }}
+                </p>
+              </div>
+            </td>
+            <td class="hidden md:table-cell px-2 py-3">
+              <div class="flex flex-wrap gap-x-1.5">
+                <span *ngFor="let artist of track.artists" 
+                      class="text-spotify-gray text-sm hover:text-white hover:underline"
+                      [routerLink]="['/artist', artist.id]">
+                  {{ artist.name }}
+                </span>
+              </div>
+            </td>
+            <td class="hidden lg:table-cell px-2 py-3 text-spotify-gray text-sm hover:underline"
+                [routerLink]="['/album', track.album.id]">
+              {{ track.album.name }}
+            </td>
+            <td class="hidden sm:table-cell px-2 py-3 text-spotify-gray text-sm">
+              {{ track.duration_ms | duration }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
-
-  <!-- Track List -->
-  <div class="overflow-x-auto rounded-md shadow-md">
-    <table class="w-full text-left">
-      <thead class="text-sm text-spotify-gray uppercase bg-[#181818] sticky top-0 z-10">  <!-- Darker header, sticky -->
-        <tr>
-          <th scope="col" class="px-4 py-3 font-medium">#</th>
-          <th scope="col" class="px-4 py-3 font-medium">Track</th>
-          <th scope="col" class="px-4 py-3 font-medium">Title</th>
-          <th scope="col" class="px-4 py-3 font-medium">Artist</th>
-          <th scope="col" class="px-4 py-3 font-medium">Album</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let track of tracks; let i = index" (click)="playTrack(track , i)"
-          class="hover:bg-[#282828] transition-colors w-full duration-200 cursor-pointer"> <!-- Slightly darker hover -->
-          <td class="px-4 py-3 text-gray-400">{{ i + 1 }}</td>  <!-- Muted numbering -->
-          <td class="px-4 py-3">
-            <img *ngIf="track.album?.images" class="w-10 h-10 rounded object-cover" [src]="track.album.images"  alt="{{ track.name }}" /> <!-- Reduced image size-->
-            <img *ngIf="!track.album?.images" class="w-10 h-10 rounded object-cover" src="../../../../assets/imgs/image.png" alt="{{ track.name }}" />
-          </td>
-          <td class="px-4  py-3">{{ track.name }}</td>
-          <td class="px-4 py-3">{{ getArtistNames(track) }}</td>
-          <td class="px-4 py-3">{{ track.album.name }}</td>
-        </tr>
-      </tbody>
-    </table>
+}
+@else {
+  <div class="bg-black text-white min-h-full h-full overflow-y-auto p-6 md:p-8" *ngIf="playlist">
+    <div class="flex flex-col md:flex-row items-center justify-start md:items-start gap-6 mb-6 md:mb-8">
+      <div class="w-full md:w-64 shadow-2xl">  <!-- Increased shadow -->
+        <img [src]="playlist.images[0].url" alt="{{ playlist.name }}" class="rounded-md aspect-square object-cover" />
+      </div>
+  
+      <div class="w-full flex flex-col items-center md:items-start"> <!-- Removed justify-center on smaller screens -->
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-2">{{ playlist.name }}</h1>  <!-- Increased font size -->
+        <p class="text-lg text-spotify-gray mb-4">{{ playlist.description }}</p>  <!-- Increased font size -->
+        <div class="flex items-center space-x-4 mb-4">  <!-- Added wrapper for spacing -->
+          <p class="text-sm text-gray-500">
+            {{ playlist.tracks.total }} tracks
+          </p>
+          <!-- Artist/Creator info can be displayed here, if available in your playlist data -->
+        </div>
+  
+        <!-- Play/Pause Button (Spotify-style) -->
+        <button (click)="togglePlayPause()" class="group bg-spotify-green-lighter aspect-square  hover:bg-spotify-green-light text-white font-bold py-3 px-6 rounded-full transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"> <!-- More padding, rounded full -->
+            <span class="sr-only">{{ isPlaying ? 'Pause' : 'Play' }}</span>  <!-- For accessibility -->
+            <i class="fas fa-play text-black group-hover:text-black inline-block" *ngIf="!isPlaying"></i>  <!-- Icon -->
+            <i class="fas fa-pause text-black group-hover:text-black  inline-block" *ngIf="isPlaying"></i>   <!-- Icon -->
+        </button>
+  
+      </div>
+    </div>
+  
+    <!-- Track List -->
+    <div class="overflow-x-auto rounded-md shadow-md">
+      <table class="w-full text-left">
+        <thead class="text-sm text-spotify-gray uppercase bg-spotify-black sticky top-0 z-10">  <!-- Darker header, sticky -->
+          <tr>
+            <th scope="col" class="px-4 py-3 font-medium">#</th>
+            <th scope="col" class="px-4 py-3 font-medium">Track</th>
+            <th scope="col" class="px-4 py-3 font-medium">Title</th>
+            <th scope="col" class="px-4 py-3 font-medium">Artist</th>
+            <th scope="col" class="px-4 py-3 font-medium">Album</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let track of tracks; let i = index" (click)="playTrack(track , i)"
+            class="hover:bg-spotify-green-lighter transition-colors w-full duration-200 cursor-pointer"> <!-- Slightly darker hover -->
+            <td class="px-4 py-3 text-gray-400">{{ i + 1 }}</td>  <!-- Muted numbering -->
+            <td class="px-4 py-3">
+              <img *ngIf="track.album?.images" class="w-10 h-10 rounded object-cover" [src]="track.album.images"  alt="{{ track.name }}" /> <!-- Reduced image size-->
+              <img *ngIf="!track.album?.images" class="w-10 h-10 rounded object-cover" src="../../../../assets/imgs/image.png" alt="{{ track.name }}" />
+            </td>
+            <td class="px-4  py-3">{{ track.name }}</td>
+            <td class="px-4 py-3">{{ getArtistNames(track) }}</td>
+            <td class="px-4 py-3">{{ track.album.name }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
-</div>
+}
 
-<div *ngIf="!playlist" class="bg-[#121212] text-white min-h-screen p-6 md:p-8 flex items-center justify-center">
+<div *ngIf="!playlist && !isSaved" class="bg-black text-white min-h-screen p-6 md:p-8 flex items-center justify-center">
  <app-loading></app-loading>
 </div>

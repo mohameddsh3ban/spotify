@@ -1,5 +1,6 @@
-import { Component, ViewChild, viewChild } from '@angular/core';
+import { Component, HostListener, inject, ViewChild, viewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { SpotifyAuthService } from '../../services/spotify-auth.service';
 
 @Component({
   selector: 'app-header',
@@ -10,20 +11,35 @@ import { Router, RouterLink } from '@angular/router';
 export class HeaderComponent {
   searchQuery: string = ''; // Bind this to the input
 searchType: string = 'track'; // Default value: search all types
-  constructor(private router: Router) {}  // Inject the Router
+showDropdown = false;
+ private authService = inject(SpotifyAuthService);
+  private router = inject(Router);
 
-  onSearch(): void {  // Call this when the user presses Enter or clicks a search button.  Remove if using option 1
+  onSearch(): void {  
     this.router.navigate(['/search', {query: this.searchQuery, type:this.searchType }]);
   }
   onSearchInputChange(event: any): void {
     this.searchQuery = event.target.value;
-     //Option 1: Navigate on every key press (least efficient)
-    //  this.router.navigate(['/search', this.searchQuery]);
+    
   }
   onSearchTypeChange(event: any): void {
     this.searchType = event.target.value;
-     //Option 1: Navigate on every key press (least efficient)
-    //  this.router.navigate(['/search', this.searchQuery]);
+
   }
+
+
+  toggleDropdown(): void {
+    this.showDropdown = !this.showDropdown;
+    console.log('Dropdown state:', this.showDropdown);
+  }
+
+  logout(): void {
+    // Add your logout logic here
+    console.log('Logging out...');
+    // this.showDropdown = false;
+     this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
 
 }

@@ -1,6 +1,6 @@
 @if (item().description!='') {
     @if(isExpanded()){
-        <div class="group flex justify-start items-center overflow-hidden min-w-max mb-[4px] " [routerLink]="['playlist/',item().id]" #listA>
+        <div class="group flex justify-start items-center overflow-hidden min-w-max mb-[4px] hover:bg-spotify-green-lighter rounded-xl duration-200 " [routerLink]="['/playlist/',item().id]" #listA>
         
 <img [src]="item().images[0].url" class="aspect-square object-center object-contain w-14 rounded-xl" alt="">
             
@@ -14,7 +14,7 @@
     }@else {
         <div class="group flex justify-start items-center overflow-hidden min-w-max mb-[4px] " #listA>
    
-<img [src]="item().images[0].url" class="aspect-square object-center object-contain w-10 rounded-xl" alt="">
+<img [src]="item().images[0].url" class="aspect-square object-center object-contain w-10 rounded-xl" [routerLink]="['/playlist/',item().id]" alt="">
    
         
       

@@ -25,11 +25,12 @@ import { RouterLink } from '@angular/router';
 import { ITrack } from '../../model/ITrack.model';
 import { SpotifyService } from '../../services/spotify.service';
 import { flush } from '@angular/core/testing';
+import { LoadingComponent } from "../../components/loading/loading.component";
 
 @Component({
   selector: 'app-footer',
   standalone: true,
-  imports: [NgIf, RouterLink],
+  imports: [NgIf, RouterLink, LoadingComponent],
   templateUrl: './footer.component.html',
   styleUrls: ['./footer.component.css'],
 })
@@ -49,6 +50,9 @@ export class FooterComponent implements OnInit, OnDestroy, AfterViewInit {
   isLiked = false;
 onRepeat = 'off';
   @ViewChild('progressBar', { static: false }) progressBar:
+    | ElementRef
+    | undefined;
+    @ViewChild('mobileProgressBar', { static: false }) mobileProgressBar:
     | ElementRef
     | undefined;
   @ViewChild('volumeBar', { static: false }) volumeBar: ElementRef | undefined;
@@ -82,7 +86,9 @@ onRepeat = 'off';
             console.log(res);
             if (this.currentTrack) {
               this.artistsString = this.currentTrack.artists
-                .map((artist) => artist.name)
+                .map((artist) => {
+                  artist.name ,artist.id
+                })
                 .join(', ');
             }
             console.log(this.currentTrack);
@@ -198,19 +204,52 @@ onRepeat = 'off';
     this.playerService.setShuffle(nextState);
   }
 
-  seekTo(event: MouseEvent): void {
+  seekTo(event: MouseEvent | TouchEvent): void {
     if (this.progressBar && this.durationMs) {
       const progressBarRect =
         this.progressBar.nativeElement.getBoundingClientRect();
-      const clickX = event.clientX - progressBarRect.left;
-      const newPositionPercent = clickX / progressBarRect.width;
-      const newPositionMs = newPositionPercent * this.durationMs;
+      let clickX;
 
-      // set the current progressMS value
-      this.progressMs = newPositionMs;
-      // then update the player
-      this.playerService.seek(newPositionMs);
-      this.updateProgress();
+      if (event instanceof MouseEvent) {
+        clickX = event.clientX - progressBarRect.left;
+      } else if (event instanceof TouchEvent && event.touches.length > 0) {
+        clickX = event.touches[0].clientX - progressBarRect.left;
+      }
+
+      if (clickX !== undefined) {
+        const newPositionPercent = clickX / progressBarRect.width;
+        const newPositionMs = newPositionPercent * this.durationMs;
+
+        // set the current progressMS value
+        this.progressMs = newPositionMs;
+        // then update the player
+        this.playerService.seek(newPositionMs);
+        this.updateProgress();
+      }
+    }
+  }
+  mobileSeekTo(event: MouseEvent | TouchEvent): void {
+    if (this.mobileProgressBar && this.durationMs) {
+      const progressBarRect =
+        this.mobileProgressBar.nativeElement.getBoundingClientRect();
+      let clickX;
+
+      if (event instanceof MouseEvent) {
+        clickX = event.clientX - progressBarRect.left;
+      } else if (event instanceof TouchEvent && event.touches.length > 0) {
+        clickX = event.touches[0].clientX - progressBarRect.left;
+      }
+
+      if (clickX !== undefined) {
+        const newPositionPercent = clickX / progressBarRect.width;
+        const newPositionMs = newPositionPercent * this.durationMs;
+
+        // set the current progressMS value
+        this.progressMs = newPositionMs;
+        // then update the player
+        this.playerService.seek(newPositionMs);
+        this.updateProgress();
+      }
     }
   }
 
@@ -249,17 +288,6 @@ onRepeat = 'off';
     return `${minutes}:${displaySeconds}`;
   }
 
-  // @HostListener('document:keydown', ['$event'])
-  // handleKeyboardEvent(event: KeyboardEvent) {
-  //   if (event.code === 'Space') {
-  //     event.preventDefault();
-  //     this.togglePlay();
-  //   } else if (event.code === 'ArrowRight') {
-  //     this.seekRelative(5000);
-  //   } else if (event.code === 'ArrowLeft') {
-  //     this.seekRelative(-5000);
-  //   }
-  // }
 
   seekRelative(ms: number) {
     this.progressMs = Math.max(

@@ -1,23 +1,23 @@
 <div class="bg-spotify-shadeBlack h-full  text-white overflow-y-auto">
   <!-- Hero Section -->
   <section class="relative h-[400px]">
-    <div class="absolute inset-0 bg-gradient-to-t from-spotify-black via-spotify-black/50 to-transparent">
+    <div class="absolute inset-0 bg-gradient-to-t  from-spotify-green-lighter via-spotify-black/0 z-10 to-transparent">
       <div class="container mx-auto px-6 h-full flex items-end pb-16">
         <div class="max-w-2xl">
           <h1 class="text-5xl font-bold mb-4 drop-shadow-xl">Your Daily Mix</h1>
           <p class="text-xl text-spotify-lightGray mb-6">Made specially for you • Updated daily</p>
           <button 
             (click)="playFeatured()"
-            class="bg-spotify-green-light text-black px-8 py-3 rounded-full font-bold hover:scale-105 transition-transform">
+            class="bg-spotify-green-light text-white px-8 py-3 rounded-full font-bold hover:scale-105 transition-transform">
             Play Now
           </button>
         </div>
       </div>
     </div>
     <img 
-      src="" 
+      src="https://w.wallhaven.cc/full/d6/wallhaven-d6qwkg.jpg" 
       alt="Featured content"
-      class="w-full h-full object-cover absolute inset-0 -z-10"
+      class="w-full h-full object-cover absolute inset-0 "
     >
   </section>
 
@@ -26,42 +26,57 @@
     <!-- Quick Access -->
     <section>
       <h2 class="text-2xl font-bold mb-6">Jump Back In</h2>
-      @defer ( ) {
+      @if (recentPlaylists().length > 0)  {
         <app-playlist-list 
         [playlists]="recentPlaylists()"
         (play)="playPlaylist($event)"
         class="scrollbar-hide"
       ></app-playlist-list>
-      }@placeholder {
+      }@else {
 <app-loading></app-loading>
       }
 
     </section>
 
     <!-- Made For You -->
-    <section>
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold">Made For You</h2>
-      </div>
-      <app-playlist-list 
-        [playlists]="personalizedPlaylists()"
-        (play)="playPlaylist($event)"
-      ></app-playlist-list>
-    </section>
+     @if(personalizedPlaylists().length > 0 && isLoading() == false)  {
+      <section>
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">Made For You</h2>
+        </div>
+        @if(personalizedPlaylists().length > 0) {
+          <app-playlist-list 
+          [playlists]="personalizedPlaylists()"
+          (play)="playPlaylist($event)"
+        ></app-playlist-list>
+        }@else {
+  <app-loading></app-loading>
+        }
+  
+      </section>
+     }
+
 
     <!-- New Releases -->
     <section>
-     
-      <app-album-list 
+
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">New Releases</h2>
+      </div>
+      @if(newReleases().length > 0) {
+        <app-album-list 
         [albums]="newReleases()"  
         (play)="playAlbum($event)"
         #newReleasess
         class="scrollbar-hide"
       ></app-album-list>
+      }@else {
+        <app-loading></app-loading>}
+ 
     </section>
 
     <!-- Genre Grid -->
-    <section>
+    <!-- <section>
       <h2 class="text-2xl font-bold mb-6">Genres & Moods</h2>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <div *ngFor="let genre of genres()" 
@@ -72,29 +87,32 @@
           <img [src]="genre.iconUrl" class="genre-icon">
         </div>
       </div>
-    </section>
+    </section> -->
 
     <!-- Recently Played -->
-    <section>
-      <h2 class="text-2xl font-bold mb-6">Recently Played</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div *ngFor="let track of recentTracks()" 
-             class="recent-track-card duration-200 hover:bg-green-200">
-          <img [src]="track.album.images?.[0]?.url" class="w-16 h-16 rounded">
-          <div class="flex-1 truncate">
-            <p class="font-medium truncate hover:underline cursor-pointer hover:text-black" [routerLink]="['/track', track.id]">{{ track.name }}</p>
-            @for(artist of track.artists;track $index){
-              <p class="text-spotify-gray text-sm truncate cursor-pointer hover:underline hover:text-black" [routerLink]="['/artist', artist.id]">
-                {{ artist.name }}
-              </p>
-            }
-         
+     @if(recentTracks().length > 0) {
+      <section>
+        <h2 class="text-2xl font-bold mb-6">Recently Played</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div *ngFor="let track of recentTracks()" 
+               class="recent-track-card duration-200 hover:bg-spotify-green-lighter">
+            <img [src]="track.album.images?.[0]?.url" class="w-16 h-16 rounded">
+            <div class="flex-1 truncate">
+              <p class="font-medium truncate hover:underline cursor-pointer hover:text-black" [routerLink]="['/track', track.id]">{{ track.name }}</p>
+              @for(artist of track.artists;track $index){
+                <p class="text-spotify-gray text-sm truncate cursor-pointer hover:underline hover:text-black" [routerLink]="['/artist', artist.id]">
+                  {{ artist.name }}
+                </p>
+              }
+           
+            </div>
+            <button (click)="playTrack(track)" class="play-btn px-1 cursor-pointer">
+              <i class="fas fa-play px-1.5"></i>
+            </button>
           </div>
-          <button (click)="playTrack(track)" class="play-btn px-1 cursor-pointer">
-            <i class="fas fa-play px-1.5"></i>
-          </button>
         </div>
-      </div>
-    </section>
+      </section>
+     }
+
   </div>
 </div>

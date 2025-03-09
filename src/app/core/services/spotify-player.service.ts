@@ -45,7 +45,8 @@ export class SpotifyPlayerService {
     private apiService = inject(SpotifyApiService);
     private authService = inject(SpotifyAuthService);
     private ngZone = inject(NgZone);
-
+    private currentTrackList: string[] = [];
+    private currentPlaylistUri: string | null = null;
     private player : ISpotifyPlayer | null | any; // Ideally, use a more specific type if available
     private currentState = new BehaviorSubject<WebPlaybackState | null>(null);
     private deviceId = new BehaviorSubject<string | null>(null);
@@ -354,7 +355,17 @@ async playTrackContext(
       this.handleError('Failed to play track', error);
     }
   }
-
+  playTrackList(trackUris: string[], index: number): Promise<void> {
+    this.currentTrackList = trackUris;
+    return new Promise((resolve, reject) => {
+      (window as any).SpotifyPlayer.playTrackList(trackUris, index)
+        .then(() => resolve())
+        .catch((error: any) => reject(error));
+    });
+  }
+  setPlaylistContext(uri: string): void {
+    this.currentPlaylistUri = uri;
+  }
     // Cleanup
     disconnectPlayer(): void {
         if (this.player) {

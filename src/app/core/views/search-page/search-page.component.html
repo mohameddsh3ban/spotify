@@ -1,121 +1,132 @@
-@if(searchResults.length === 0 ){
-<div class="text-gray-400 text-center h-full">
-  <app-loading></app-loading>
-</div>
-}@else {
-<div class="grid grid-cols-1 min-h-max  overflow-y-auto sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-  @switch (currentType) {
-  @case ('album') {
-
-  @for( result of searchResults ; track $index ){
-  @if(result){
-  <div class="bg-[#181818] rounded-lg shadow-md overflow-hidden cursor-pointer" [routerLink]="['/album', result.id]">
-    <!-- Adjust based on your search result structure -->
-    @if(result.images){
-    <img [src]="result.images[0].url" alt="{{ result.name }}" class="w-full h-48 object-cover">
-    }@else {
-    <img src="https://random-image-pepebigotes.vercel.app/api/random-image" alt="{{ result.name }}"
-      class="w-full h-48 object-cover">
-    }
-
-
-    <div class="p-4">
-      <h3 class="text-lg font-semibold mb-2">{{ result.name }}</h3>
-
-
-      <!-- Example Navigation (adjust based on your routes) -->
-      @for (artist of result.artists; track $index) {
-      <a [routerLink]="['/artist', artist.name]"
-        class="inline-block mt-2 text-blue-500 hover:underline">{{artist.name}}</a>
-      }
-
-      <!-- <button *ngIf="result.type === 'song'" (click)="playSong(result)" class="inline-block mt-2 bg-green-500 text-white py-2 px-4 rounded-full hover:bg-green-600">Play Song</button> -->
-
+@if(searchResults.length === 0 || searchResults.length < 1) {
+  <div class="flex items-center justify-center h-full ">
+    <app-loading></app-loading>
+  </div>
+  } @else {
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4 overflow-auto h-full ">
+    
+    @switch (currentType) {
+      @case ('album') {
+        @for (result of searchResults; track result.id) {
+          @if(result){
+            
+        
+          @defer ( when result.images[0].url  ; on timer(400ms );prefetch on idle)  {
+           <div class="group relative bg-spotify-shadeBlack rounded-lg p-4 hover:bg-spotify-black transition-all duration-200 cursor-pointer"
+            [routerLink]="['/album', result.id]">
+            <div class="relative mb-4 shadow-xl">
+            <img [src]="result.images[0].url || 'assets/default-album.png'" 
+                 alt="{{ result.name }}"
+                 class="w-full aspect-square object-cover rounded-lg"
+                 (error)="result.images[0].url = 'assets/default-album.png'">
+                 <button class="absolute bottom-2 right-2 bg-spotify-green-lighter rounded-full p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:scale-105"
+                 (click)="playAlbum(result.id); ">
+           <svg class="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 24 24">
+             <path d="M8 5v14l11-7z"/>
+           </svg>
+         </button>
+        </div>
+        <h3 class="font-semibold truncate mb-1">{{ result.name }}</h3>
+        <div class="text-spotify-lightGray text-sm truncate">
+          <span class="mr-2">{{ result.release_date | date:'yyyy' }}</span>
+          <span>• {{ result.total_tracks  }} tracks</span>
+        </div>
+            </div>
+          }@placeholder {
+          <div class="group" >
+            <div class="relative mb-4 shadow-xl">
+              <div class="w-full aspect-square rounded-lg bg-spotify-lightBlack animate-pulse"></div>
+              <button class="absolute bottom-2 right-2 bg-spotify-shadeBlack animate-pulse rounded-full p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:scale-105"
+              (click)="playAlbum(result.id); ">
+        <svg class="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+      </button>
     </div>
+    <span class="w-8 animate-pulse gap-2 h2 rounded-full bg-spotify-lightBlack"></span>
+    <div class="truncate  flex  flex-col">
+      <span class="w-12 animate-pulse h2 rounded-full bg-spotify-lightBlack"></span>
+      <span class="w-10 animate-pulse h2 rounded-full bg-spotify-lightBlack"></span>
+    </div>
+          </div>
+     
+          }
+        
+
+     
+   
+   
+   
+          }
+    
+        }
+      }
+      
+      @case ('track') {
+        @for (result of searchResults; track result.id) {
+          <div class="group flex items-center gap-4 p-3 rounded-lg hover:bg-black transition-colors" [routerLink]="['/track', result.id]">
+            <div class="relative">
+              @if(result.album.images){
+                <img [src]="result.album.images[0].url || 'assets/default-track.png'" 
+                alt="{{ result.name }}"
+                class="w-16 h-16 rounded-md"
+                (error)="result.album.images[0].url = 'assets/default-track.png'">
+              }
+            
+              <button class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                      (click)="playTrack(result)">
+                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-medium truncate">{{ result.name }}</p>
+              <div class="flex flex-wrap gap-x-2 text-spotify-lightGray text-sm">
+                @for (artist of result.artists; track artist.id) {
+                  <a [routerLink]="['/artist', artist.id]" 
+                     class="hover:text-white hover:underline truncate">
+                    {{ artist.name }}
+                  </a>
+                }
+              </div>
+            </div>
+            <div class="text-spotify-lightGray text-sm whitespace-nowrap">
+              {{ result.duration_ms | duration }}
+            </div>
+          </div>
+        }
+      }
+  
+      @case ('playlist') {
+        @for (result of searchResults; track $index) {
+          @if(result){
+            <div class="group relative bg-spotify-black rounded-lg p-4 hover:bg-[#282828] transition-all duration-200 cursor-pointer"
+            [routerLink]="['/playlist', result.id]">
+         <div class="relative mb-4 shadow-xl">
+          @if(result && result.images && result.images.length > 0){
+            <img [src]="result.images[0].url || 'assets/default-playlist.png'" 
+            alt="{{ result.name }}"
+            class="w-full aspect-square object-cover rounded-lg"
+            (error)="result.images[0].url = 'assets/default-playlist.png'">
+          }
+        
+           <button class="absolute bottom-2 right-2 bg-spotify-green-lighter rounded-full p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:scale-105"
+                   (click)="playPlaylist(result.id); $event.stopPropagation()">
+             <svg class="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 24 24">
+               <path d="M8 5v14l11-7z"/>
+             </svg>
+           </button>
+         </div>
+         <h3 class="font-semibold truncate mb-1">{{ result.name }}</h3>
+         <p class="text-spotify-lightGray text-sm truncate">
+           {{ result.description || 'By ' + result.owner.display_name }}
+         </p>
+       </div>
+          }
+   
+        }
+      }
+    }
   </div>
   }
-
-  }
-
-
-
-
-  }
-  @case ('track') {
-
-
-
-  @for( result of searchResults ; track $index ){
-  @if(result){
-  <div class="bg-[#181818] rounded-lg shadow-md overflow-hidden cursor-pointer" [routerLink]="['/track', result.id]">
-    <!-- Adjust based on your search result structure -->
-    @if(result.album && result.album.images && result.album.images.length > 0){
-    <img [src]="result.album.images[0].url" alt="{{ result.name }}" class="w-full h-48 object-cover">
-    }@else {
-    <img src="https://random-image-pepebigotes.vercel.app/api/random-image" alt="{{ result.name }}"
-      class="w-full h-48 object-cover">
-    }
-
-
-    <div class="p-4">
-      <h3 class="text-lg font-semibold mb-2">{{ result.name }}</h3>
-
-
-      <!-- Example Navigation (adjust based on your routes) -->
-      @for (artist of result.artists; track $index) {
-      <a [routerLink]="['/artist', artist.name]"
-        class="inline-block mt-2 text-blue-500 hover:underline">{{artist.name}}</a>
-      }
-
-      <!-- <button *ngIf="result.type === 'song'" (click)="playSong(result)" class="inline-block mt-2 bg-green-500 text-white py-2 px-4 rounded-full hover:bg-green-600">Play Song</button> -->
-
-    </div>
-  </div>
-  }
-
-  }
-
-
-
-
-  }
-
-  @case ('playlist') {
-
-
-  @for( result of searchResults ; track $index ){
-  @if(result){
-  <div class="bg-[#181818] rounded-lg shadow-md overflow-hidden cursor-pointer" [routerLink]="['/playlist', result.id]">
-    <!-- Adjust based on your search result structure -->
-    @if(result.images[0]){
-    <img [src]="result.images[0].url" alt="{{ result.name }}" class="w-full h-48 object-cover">
-    }@else {
-    <img src="https://random-image-pepebigotes.vercel.app/api/random-image" alt="{{ result.name }}"
-      class="w-full h-48 object-cover">
-    }
-
-
-    <div class="p-4">
-      <h3 class="text-lg font-semibold mb-2">{{ result.name }}</h3>
-
-
-      <!-- Example Navigation (adjust based on your routes) -->
-      @for (artist of result.artists; track $index) {
-      <a [routerLink]="['/artist', artist.name]"
-        class="inline-block mt-2 text-blue-500 hover:underline">{{artist.name}}</a>
-      }
-
-      <!-- <button *ngIf="result.type === 'song'" (click)="playSong(result)" class="inline-block mt-2 bg-green-500 text-white py-2 px-4 rounded-full hover:bg-green-600">Play Song</button> -->
-
-    </div>
-  </div>
-  }
-
-  }
-
-
-
-  }
-  }
-</div>
-}

@@ -10,7 +10,7 @@ import { FooterComponent } from './core/layout/footer/footer.component';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
-  imports: [HeaderComponent, SidebarComponent, ListAComponent,RouterOutlet,FooterComponent],
+  imports: [HeaderComponent, SidebarComponent,RouterOutlet,FooterComponent],
   standalone: true,
 })
 export class AppComponent implements OnInit, OnDestroy {

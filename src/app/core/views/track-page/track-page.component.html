@@ -1,5 +1,5 @@
 <!-- track-page.component.html -->
-<div class="bg-[#121212] text-white min-h-full h-full overflow-y-auto p-6 md:p-8" *ngIf="track">
+<div class="bg-black text-white min-h-full h-full overflow-y-auto p-6 md:p-8" *ngIf="track">
     <div class="flex flex-col md:flex-row items-center justify-start md:items-start gap-6 mb-6 md:mb-8">
         <div class="w-full md:w-96 shadow-2xl">
             @if (track.album.images) {
@@ -72,7 +72,7 @@
     <!-- Track Details -->
     <div class="space-y-6 max-w-3xl mx-auto">
         <!-- Album Section -->
-        <div class="bg-[#181818] p-6 rounded-lg">
+        <div class="bg-spotify-black p-6 rounded-lg">
             <div class="flex items-center gap-4 mb-4">
             @if(track.album.images){
                     <img [routerLink]="['/album', track.album.id]"  [src]="track.album.images[0].url || 'https://picsum.photos/300/300'" 
@@ -92,7 +92,7 @@
 
         <!-- Artist Section -->
          @for(artist of artists; track $index){
-            <div class="bg-[#181818] p-6 rounded-lg">
+            <div class="bg-spotify-black p-6 rounded-lg">
                 <h3 class="font-bold text-lg mb-4">Artist</h3>
                 <div class="flex items-center gap-4">
                     <img [src]="artist.images[0].url || 'https://picsum.photos/300/300'" 
@@ -112,17 +112,17 @@
 
         <!-- Track Info Grid -->
         <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-spotify-gray">
-            <div class="bg-[#181818] p-4 rounded-lg">
+            <div class="bg-spotify-black p-4 rounded-lg">
                 <p class="text-sm">Release Date</p>
                 <p class="text-white">{{ track.album.release_date | date:'mediumDate' }}</p>
             </div>
             
-            <div class="bg-[#181818] p-4 rounded-lg">
+            <div class="bg-spotify-black p-4 rounded-lg">
                 <p class="text-sm">Track Number</p>
                 <p class="text-white">#{{ track.track_number }}</p>
             </div>
             
-            <div class="bg-[#181818] p-4 rounded-lg">
+            <div class="bg-spotify-black p-4 rounded-lg">
                 <p class="text-sm">Disc Number</p>
                 <p class="text-white">{{ track.disc_number }}</p>
             </div>
@@ -130,6 +130,6 @@
     </div>
 </div>
 
-<div *ngIf="!track" class="bg-[#121212] text-white min-h-screen p-6 md:p-8 flex items-center justify-center">
+<div *ngIf="!track" class="bg-black text-white min-h-screen p-6 md:p-8 flex items-center justify-center">
     <app-loading></app-loading>
 </div>

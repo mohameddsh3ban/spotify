@@ -1,56 +1,111 @@
 
+@if(isMobile()){
+    
 <aside
-    class="bg-spotify-shadeBlack text-spotify-gray h-full flex flex-col transition-all duration-250 relative rounded-lg"
-    [style.width.px]="sidebarWidth()" [class.overflow-hidden]="!isExpanded()" #sidebar>
-    <!-- Resizer Bar -->
-    <div class="absolute top-0 right-0 h-full duration-200 rounded-full w-0.5 cursor-crosshair bg-gray-800/20 hover:bg-white"
-        (mousedown)="startResizing($event)">
-    </div>
-    <header class="flex justify-center items-center w-full px-3 py-4">
-        <button   [ngClass]="isExpanded()?'justify-start':'justify-center'"  (click)="toggleSidebar()" class="p-2 flex  items-center w-full space-x-4"><svg data-encore-id="icon" role="img"
-                aria-hidden="true" class="w-6 h-6 " viewBox="0 0 24 24">
-           @if(sidebarWidth() >250){
-            <path class="fill-white"
-            d="M3 22a1 1 0 0 1-1-1V3a1 1 0 0 1 2 0v18a1 1 0 0 1-1 1zM15.5 2.134A1 1 0 0 0 14 3v18a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V6.464a1 1 0 0 0-.5-.866l-6-3.464zM9 2a1 1 0 0 0-1 1v18a1 1 0 1 0 2 0V3a1 1 0 0 0-1-1z">
-        </path>
-           }@else {
-            <path class="fill-spotify-gray "
-            d="M14.5 2.134a1 1 0 0 1 1 0l6 3.464a1 1 0 0 1 .5.866V21a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V3a1 1 0 0 1 .5-.866zM16 4.732V20h4V7.041l-4-2.309zM3 22a1 1 0 0 1-1-1V3a1 1 0 0 1 2 0v18a1 1 0 0 1-1 1zm6 0a1 1 0 0 1-1-1V3a1 1 0 0 1 2 0v18a1 1 0 0 1-1 1z">
-        </path>
-           }
-             
-            </svg>
+class="bg-spotify-shadeBlack   text-spotify-gray  flex flex-col transition-all w-full duration-250 relative rounded-lg"
+>
+<!-- Resizer Bar -->
+
+<header class="flex justify-center items-center w-full px-3 py-4">
+    <div   class="p-2 flex  items-center w-full space-x-4"><svg data-encore-id="icon" role="img"
+            aria-hidden="true" class="w-6 h-6 " viewBox="0 0 24 24">
+    
+        <path class="fill-white"
+        d="M3 22a1 1 0 0 1-1-1V3a1 1 0 0 1 2 0v18a1 1 0 0 1-1 1zM15.5 2.134A1 1 0 0 0 14 3v18a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V6.464a1 1 0 0 0-.5-.866l-6-3.464zM9 2a1 1 0 0 0-1 1v18a1 1 0 1 0 2 0V3a1 1 0 0 0-1-1z">
+    </path>
+    
+         
+        </svg>
 
 
-            <span class=" text-sm font-semibold" [ngClass]="sidebarWidth() < 250 ?  'hidden' : 'text-white' "> Your
-                Library</span>
-
-
-        </button>
-        <div class="flex ">
-            <!-- add playlist -->
-            @if (sidebarWidth() > 250) {
-            <button class="text-xl group p-2 rounded-full hover:bg-spotify-gray-dark duration-200"> <svg
-                    data-encore-id="icon" role="img" aria-hidden="true" class="h-4 w-4" viewBox="0 0 16 16">
-                    <path class=" fill-spotify-gray group-hover:fill-white"
-                        d="M15.25 8a.75.75 0 0 1-.75.75H8.75v5.75a.75.75 0 0 1-1.5 0V8.75H1.5a.75.75 0 0 1 0-1.5h5.75V1.5a.75.75 0 0 1 1.5 0v5.75h5.75a.75.75 0 0 1 .75.75z">
-                    </path>
-                </svg></button>
-            <!-- toggle -->
-            <button class="text-xl  rotate-180 group p-2 rounded-full hover:bg-spotify-gray-dark duration-200"
-                (click)="toggleSidebar()"> <svg class="h-4 w-4" data-encore-id="icon" role="img" aria-hidden="true"
-                    viewBox="0 0 16 16">
-                    <path class=" fill-spotify-gray group-hover:fill-white"
-                        d="M7.19 1A.749.749 0 0 1 8.47.47L16 7.99l-7.53 7.521a.75.75 0 0 1-1.234-.815.75.75 0 0 1 .174-.243l5.72-5.714H.75a.75.75 0 1 1 0-1.498h12.38L7.41 1.529a.749.749 0 0 1-.22-.53z">
-                    </path>
-                </svg></button>
-            }
+        <span class=" text-sm font-semibold text-white"> Your
+            Library</span>
 
 
         </div>
-    </header>
+    <div class="flex ">
+        <!-- add playlist -->
+        @if (sidebarWidth() > 250) {
+        <button class="text-xl group p-2 rounded-full hover:bg-spotify-gray-dark duration-200"> <svg
+                data-encore-id="icon" role="img" aria-hidden="true" class="h-4 w-4" viewBox="0 0 16 16">
+                <path class=" fill-spotify-gray group-hover:fill-white"
+                    d="M15.25 8a.75.75 0 0 1-.75.75H8.75v5.75a.75.75 0 0 1-1.5 0V8.75H1.5a.75.75 0 0 1 0-1.5h5.75V1.5a.75.75 0 0 1 1.5 0v5.75h5.75a.75.75 0 0 1 .75.75z">
+                </path>
+            </svg></button>
+        <!-- toggle -->
+        <button class="text-xl  rotate-180 group p-2 rounded-full hover:bg-spotify-gray-dark duration-200"
+            (click)="toggleSidebar()"> <svg class="h-4 w-4" data-encore-id="icon" role="img" aria-hidden="true"
+                viewBox="0 0 16 16">
+                <path class=" fill-spotify-gray group-hover:fill-white"
+                    d="M7.19 1A.749.749 0 0 1 8.47.47L16 7.99l-7.53 7.521a.75.75 0 0 1-1.234-.815.75.75 0 0 1 .174-.243l5.72-5.714H.75a.75.75 0 1 1 0-1.498h12.38L7.41 1.529a.749.749 0 0 1-.22-.53z">
+                </path>
+            </svg></button>
+        }
 
-<ng-content ></ng-content>
+
+    </div>
+</header>
+<div class="h-2/6 overflow-y-auto">
+    
+    <app-list-a [isMobile]="isMobile()" class="flex mx-2 flex-col overflow-y-auto"></app-list-a>
+</div>
 
 
 </aside>
+}@else {
+    
+<aside
+class="bg-spotify-shadeBlack  text-spotify-gray h-full flex flex-col transition-all duration-250 relative rounded-lg"
+[style.width.px]="sidebarWidth()" [class.overflow-hidden]="!isExpanded" #sidebar>
+<!-- Resizer Bar -->
+<div class="absolute top-0 right-0 h-full duration-200 rounded-full w-0.5 cursor-crosshair bg-gray-800/20 hover:bg-white"
+    (mousedown)="startResizing($event)">
+</div>
+<header class="flex justify-center items-center w-full px-3 py-4">
+    <button   [ngClass]="isExpanded?'justify-start':'justify-center'"  (click)="toggleSidebar()" class="p-2 flex  items-center w-full space-x-4"><svg data-encore-id="icon" role="img"
+            aria-hidden="true" class="w-6 h-6 " viewBox="0 0 24 24">
+       @if(sidebarWidth() >250){
+        <path class="fill-white"
+        d="M3 22a1 1 0 0 1-1-1V3a1 1 0 0 1 2 0v18a1 1 0 0 1-1 1zM15.5 2.134A1 1 0 0 0 14 3v18a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V6.464a1 1 0 0 0-.5-.866l-6-3.464zM9 2a1 1 0 0 0-1 1v18a1 1 0 1 0 2 0V3a1 1 0 0 0-1-1z">
+    </path>
+       }@else {
+        <path class="fill-spotify-gray "
+        d="M14.5 2.134a1 1 0 0 1 1 0l6 3.464a1 1 0 0 1 .5.866V21a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V3a1 1 0 0 1 .5-.866zM16 4.732V20h4V7.041l-4-2.309zM3 22a1 1 0 0 1-1-1V3a1 1 0 0 1 2 0v18a1 1 0 0 1-1 1zm6 0a1 1 0 0 1-1-1V3a1 1 0 0 1 2 0v18a1 1 0 0 1-1 1z">
+    </path>
+       }
+         
+        </svg>
+
+
+        <span class=" text-sm font-semibold" [ngClass]="sidebarWidth() < 250 ?  'hidden' : 'text-white' "> Your
+            Library</span>
+
+
+    </button>
+    <div class="flex ">
+        <!-- add playlist -->
+        @if (sidebarWidth() > 250) {
+        <button class="text-xl group p-2 rounded-full hover:bg-spotify-gray-dark duration-200"> <svg
+                data-encore-id="icon" role="img" aria-hidden="true" class="h-4 w-4" viewBox="0 0 16 16">
+                <path class=" fill-spotify-gray group-hover:fill-white"
+                    d="M15.25 8a.75.75 0 0 1-.75.75H8.75v5.75a.75.75 0 0 1-1.5 0V8.75H1.5a.75.75 0 0 1 0-1.5h5.75V1.5a.75.75 0 0 1 1.5 0v5.75h5.75a.75.75 0 0 1 .75.75z">
+                </path>
+            </svg></button>
+        <!-- toggle -->
+        <button class="text-xl  rotate-180 group p-2 rounded-full hover:bg-spotify-gray-dark duration-200"
+            (click)="toggleSidebar()"> <svg class="h-4 w-4" data-encore-id="icon" role="img" aria-hidden="true"
+                viewBox="0 0 16 16">
+                <path class=" fill-spotify-gray group-hover:fill-white"
+                    d="M7.19 1A.749.749 0 0 1 8.47.47L16 7.99l-7.53 7.521a.75.75 0 0 1-1.234-.815.75.75 0 0 1 .174-.243l5.72-5.714H.75a.75.75 0 1 1 0-1.498h12.38L7.41 1.529a.749.749 0 0 1-.22-.53z">
+                </path>
+            </svg></button>
+        }
+
+
+    </div>
+</header>
+<app-list-a [isMobile]="isMobile()" class="flex flex-col h-full overflow-y-auto"></app-list-a>
+
+
+</aside>
+}

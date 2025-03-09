@@ -1,33 +1,97 @@
-<section class="overflow-y-auto flex flex-col overflow-x-hidden max-h-screen" #listA>
-    @if (isExpanded()) {
-        <div  class="flex  justify-between items-center px-4">
-            <!-- search  -->
-            <button class="p-1 hover:bg-spotify-gray-dark group hover:scale-105 rounded-full duration-200 "> <svg data-encore-id="icon" role="img"
-                    aria-hidden="true" class="h-4 w-4" viewBox="0 0 16 16">
-                    <path class="fill-spotify-gray group-hover:fill-white"
-                        d="M7 1.75a5.25 5.25 0 1 0 0 10.5 5.25 5.25 0 0 0 0-10.5zM.25 7a6.75 6.75 0 1 1 12.096 4.12l3.184 3.185a.75.75 0 1 1-1.06 1.06L11.304 12.2A6.75 6.75 0 0 1 .25 7z">
-                    </path>
-                </svg></button>
-    
-            <!-- filter -->
-            <button class="p-1 flex  group duration-200  justify-center hover:scale-105 items-center space-x-1">
-    
-                <span class="text-spotify-gray text-sm group-hover:text-white  ">Recents</span>
-                <svg data-encore-id="icon" role="img" aria-hidden="true" class="h-4 w-4 " viewBox="0 0 16 16">
-                    <path class="fill-spotify-gray group-hover:fill-white"
-                        d="M15 14.5H5V13h10v1.5zm0-5.75H5v-1.5h10v1.5zM15 3H5V1.5h10V3zM3 3H1V1.5h2V3zm0 11.5H1V13h2v1.5zm0-5.75H1v-1.5h2v1.5z">
-                    </path>
-                </svg>
-    
-            </button>
+<!-- list-a.component.html -->
+@if (isMobile()) {
+    <section  (scroll)="onScroll($event)" class="overflow-y-auto flex flex-col overflow-x-hidden h-[80%]" #listA>
+      <div class="flex flex-col gap-2 px-4">
+        <!-- Search Input -->
+        <div class="relative">
+          <input
+            type="text"
+            placeholder="Search playlists..."
+            class="w-full bg-spotify-gray-dark text-white rounded-md px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-spotify-green"
+            (input)="updateSearch($any($event.target).value)"
+          />
+          <svg class="h-4 w-4 absolute right-3 top-3 fill-spotify-gray" viewBox="0 0 16 16">
+            <path d="M7 1.75a5.25 5.25 0 1 0 0 10.5 5.25 5.25 0 0 0 0-10.5zM.25 7a6.75 6.75 0 1 1 12.096 4.12l3.184 3.185a.75.75 0 1 1-1.06 1.06L11.304 12.2A6.75 6.75 0 0 1 .25 7z"/>
+          </svg>
         </div>
-    }
- 
-    <div class=" flex-col    overflow-y-auto overflow-x-hidden my-5 mx-2 ">
-        @for (item of items(); track $index) {
-            <app-list-a-item [isExpanded]="isExpanded()" [item]="item" class="w-full  cursor-pointer overflow-hidden"></app-list-a-item>
+    
+        <!-- Sort Button -->
+        <button 
+          class="flex items-center gap-2 text-spotify-gray hover:text-white transition-colors"
+          (click)="toggleSort()"
+        >
+          <span>Sort by: {{ sortBy() === 'name' ? 'Name' : 'Date' }}</span>
+          <svg class="h-4 w-4 fill-current" viewBox="0 0 16 16">
+            <path d="M3 3v1.5h10V3zM3 7.25v1.5h10v-1.5zM3 11.5v1.5h10v-1.5z"/>
+          </svg>
+        </button>
+      </div>
+    
+      <!-- Items List -->
+      <div class="flex-col overflow-y-auto overflow-x-hidden my-5 mx-2">
+        <!-- Saved Tracks and Playlist Items -->
+        <div class="group flex justify-start items-center overflow-hidden min-w-max mb-[4px] " [routerLink]="['/playlist/saved']" #listA>
+        
+            <img src="../../../../assets/imgs/savedMusic.png" class="aspect-square object-center object-contain w-14 rounded-xl" alt="">
+                        
+                    
+                    
+                     <div class="flex-col flex justify-center items-start ml-4" >
+            <span class="text-white font-sm">Saved Tracks</span>
+                    
+                     </div>
+                    </div>
+        @for (item of filteredItems(); track $index) {
+          <app-list-a-item [isExpanded]="true" [item]="item" class="w-full cursor-pointer overflow-hidden"/>
+        }
+        @if (isLoadingMore()) {
+         <app-loading></app-loading>
+        }
+      </div>
+    </section>
+    }@else {
+          <section class="overflow-y-auto flex flex-col overflow-x-hidden max-h-screen" #listA>
+        @if (isExpanded()) {
+            <div  class="flex  justify-between items-center px-4">
+                <!-- search  -->
+                <button class="p-1 hover:bg-spotify-gray-dark group hover:scale-105 rounded-full duration-200 "> <svg data-encore-id="icon" role="img"
+                        aria-hidden="true" class="h-4 w-4" viewBox="0 0 16 16">
+                        <path class="fill-spotify-gray group-hover:fill-white"
+                            d="M7 1.75a5.25 5.25 0 1 0 0 10.5 5.25 5.25 0 0 0 0-10.5zM.25 7a6.75 6.75 0 1 1 12.096 4.12l3.184 3.185a.75.75 0 1 1-1.06 1.06L11.304 12.2A6.75 6.75 0 0 1 .25 7z">
+                        </path>
+                    </svg></button>
+        
+                <!-- filter -->
+                <button class="p-1 flex  group duration-200  justify-center hover:scale-105 items-center space-x-1">
+        
+                    <span class="text-spotify-gray text-sm group-hover:text-white  ">Recents</span>
+                    <svg data-encore-id="icon" role="img" aria-hidden="true" class="h-4 w-4 " viewBox="0 0 16 16">
+                        <path class="fill-spotify-gray group-hover:fill-white"
+                            d="M15 14.5H5V13h10v1.5zm0-5.75H5v-1.5h10v1.5zM15 3H5V1.5h10V3zM3 3H1V1.5h2V3zm0 11.5H1V13h2v1.5zm0-5.75H1v-1.5h2v1.5z">
+                        </path>
+                    </svg>
+        
+                </button>
+            </div>
         }
      
-    </div>
-   
-</section>
+        <div class=" flex-col    overflow-y-auto overflow-x-hidden my-5 mx-2 ">
+            <div [class.bg-transparent]="!isExpanded()" class="group flex justify-start items-center overflow-hidden min-w-max hover:bg-spotify-green-light duration-200 mb-[4px] cursor-pointer rounded-xl bg-spotify-green-lighter  " [routerLink]="['playlist/saved']" #listA>
+        
+                <img [class.w-14]="isExpanded()" src="../../../../assets/imgs/savedMusic.png" class="aspect-square object-center  object-contain w-10 rounded-xl" alt="">
+                            
+                        
+                        
+                         <div class="flex-col flex justify-center items-start ml-4" >
+                <span  [class.hidden]="!isExpanded()"  class=" font-sm text-white">Saved Tracks</span>
+                        
+                         </div>
+                        </div>
+            @for (item of filteredItems(); track $index) {
+                <app-list-a-item [isExpanded]="isExpanded()" [item]="item" class="w-full  cursor-pointer  overflow-hidden"></app-list-a-item>
+            }
+         
+        </div>
+       
+    </section>
+    }

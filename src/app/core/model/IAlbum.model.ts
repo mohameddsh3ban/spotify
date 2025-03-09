@@ -11,4 +11,5 @@ export interface IAlbum {
     artists?: IArtist[];
     release_date?: string;
     type?:any
+    total_tracks?: number;
   }

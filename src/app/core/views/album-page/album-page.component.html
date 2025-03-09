@@ -1,5 +1,5 @@
 <!-- album-page.component.html -->
-<div class="bg-[#121212] text-white min-h-full h-full overflow-y-auto p-6 md:p-8" *ngIf="album">
+<div class="bg-black text-white min-h-full h-full overflow-y-auto p-6 md:p-8" *ngIf="album">
     <div class="flex flex-col md:flex-row items-center justify-start md:items-start gap-6 mb-6 md:mb-8">
         <div class="w-full md:w-64 shadow-2xl">
             <img [src]="album.imageUrl" alt="{{ album.name }}" class="rounded-md aspect-square object-cover" />
@@ -20,7 +20,7 @@
 
              <div class="flex items-center space-x-4 mb-4">  <!-- Added wrapper for spacing -->
                   <!-- Play/Pause Button (Spotify-style) -->
-                  <button (click)="togglePlayPause()" class="group bg-green-500 aspect-square  hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"> <!-- More padding, rounded full -->
+                  <button (click)="togglePlayPause()" class="group bg-spotify-green-lighter aspect-square  hover:bg-spotify-green-light text-white font-bold py-3 px-6 rounded-full transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"> <!-- More padding, rounded full -->
                       <span class="sr-only">{{ isPlaying ? 'Pause' : 'Play' }}</span>  <!-- For accessibility -->
                       <i class="fas fa-play text-black group-hover:text-black inline-block" *ngIf="!isPlaying"></i>  <!-- Icon -->
                       <i class="fas fa-pause text-black group-hover:text-black  inline-block" *ngIf="isPlaying"></i>   <!-- Icon -->
@@ -33,39 +33,79 @@
 
     <!-- Track List -->
     <div class="overflow-x-auto rounded-md shadow-md">
-        <table class="w-full text-left">
-            <thead class="text-sm text-spotify-gray uppercase bg-[#181818] sticky top-0 z-10">
-                <tr>
-                    <th scope="col" class="px-4 py-3 font-medium">#</th>
-                     <th scope="col" class="px-4 py-3 font-medium">Track</th>
-                    <th scope="col" class="px-4 py-3 font-medium">Title</th>
-                    <th scope="col" class="px-4 py-3 font-medium">Artist</th>
-                    <th scope="col" class="px-4 py-3 font-medium"></th>  <!-- Duration Column -->
+        <div class="overflow-x-auto sm:overflow-x-visible">
+            <table class="w-full">
+              <!-- Desktop Header -->
+              <thead class="hidden sm:table-header-group text-spotify-gray uppercase bg-spotify-black sticky top-0 z-10">
+                <tr class="text-sm">
+                  <th class="px-2 py-3 font-medium w-12">#</th>
+                  <th class="px-2 py-3 font-medium">Title</th>
+                  <th class="px-2 py-3 font-medium">Artist</th>
+                  <th class="px-2 py-3 font-medium w-24"><span class="sr-only">Duration</span></th>
                 </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let track of tracks; let i = index"
-                    class="hover:bg-[#282828] transition-colors w-full duration-200 cursor-pointer" (click)="playTrack(track,i)"
-                    [class.bg-green-800]="isCurrentlyPlaying(track)"> <!-- Highlight playing track -->
-                    <td class="px-4 py-3 text-gray-400">{{ i + 1 }}</td>
-                     <td class="px-4 py-3">
-                        <img class="w-10 h-10 rounded object-cover" [src]="album.imageUrl" alt="{{ track.name }}" />
-                    </td>
-                    <td class="px-4 py-3">{{ track.name }}</td>
-                    <td class="px-4 py-3">
-                        <!-- Display artists using ngFor -->
-                        <ng-container *ngFor="let artist of track.artists; let isLast = last">
-                            <a [routerLink]="['/artist', artist.id]" class="hover:underline text-white">{{ artist.name }}</a>
-                            <span *ngIf="!isLast" class="text-spotify-gray">, </span>
-                        </ng-container>
-                    </td>
-                     <td class="px-4 py-3 text-spotify-gray">{{ formatDuration(track.duration_ms) }}</td> <!-- Show track duration-->
+              </thead>
+          
+              <tbody>
+                <tr *ngFor="let track of tracks; let i = index" 
+                    class="group border-b border-spotify-lightBlack hover:bg-spotify-green-lighter transition-colors cursor-pointer"
+                    (click)="playTrack(track, i)"
+                    [class.bg-spotify-green-lighter]="isCurrentlyPlaying(track)">
+                    
+                  <!-- Mobile View -->
+                  <td class="sm:hidden p-3 w-full">
+                    <div class="flex items-center gap-4">
+                      <div class="relative">
+                        <span class="text-spotify-gray text-sm absolute left-2 top-2.5">{{ i + 1 }}</span>
+                        <img [src]="album.imageUrl" 
+                             class="w-14 h-14 rounded object-cover"
+                             alt="{{ track.name }}">
+                      </div>
+                      
+                      <div class="flex-1 min-w-0">
+                        <p class="text-white text-sm truncate">{{ track.name }}</p>
+                        <div class="text-spotify-gray text-xs truncate">
+                          <span *ngFor="let artist of track.artists; let last = last">
+                            {{ artist.name }}<span *ngIf="!last">, </span>
+                          </span>
+                        </div>
+                        <div class="text-spotify-gray text-xs mt-1">
+                          {{ formatDuration(track.duration_ms) }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+          
+                  <!-- Desktop View -->
+                  <td class="hidden sm:table-cell px-2 py-3 text-spotify-gray text-sm">
+                    {{ i + 1 }}
+                  </td>
+                  <td class="hidden sm:table-cell px-2 py-3">
+                    <div class="flex items-center gap-3">
+                      <img [src]="album.imageUrl" 
+                           class="w-10 h-10 rounded object-cover"
+                           alt="{{ track.name }}">
+                      <p class="text-white truncate">{{ track.name }}</p>
+                    </div>
+                  </td>
+                  <td class="hidden sm:table-cell px-2 py-3">
+                    <div class="flex flex-wrap gap-x-1.5">
+                      <span *ngFor="let artist of track.artists" 
+                            class="text-spotify-gray text-sm hover:text-white hover:underline"
+                            [routerLink]="['/artist', artist.id]">
+                        {{ artist.name }}
+                      </span>
+                    </div>
+                  </td>
+                  <td class="hidden sm:table-cell px-2 py-3 text-spotify-gray text-sm">
+                    {{ formatDuration(track.duration_ms) }}
+                  </td>
                 </tr>
-            </tbody>
-        </table>
+              </tbody>
+            </table>
+          </div>
     </div>
 </div>
 
-<div *ngIf="!album" class="bg-[#121212] text-white min-h-screen p-6 md:p-8 flex items-center justify-center">
+<div *ngIf="!album" class="bg-black text-white min-h-screen p-6 md:p-8 flex items-center justify-center">
     <app-loading></app-loading>
 </div>

@@ -6,24 +6,23 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        black: '#121212',
         spotify: {
-          green: 
-          {dark:"#1DB954",
-           light: "#1ED760" ,
-           lighter: "#3be477",
+          green: {
+            dark: "#00008B",
+            light: "#0000FF",
+            lighter: "#800080",
           },
-            
-          black: "#2a2a2a",
-          lightBlack: "#1f1f1f",
+          black: "#121212",
+          lightBlack: "#222222",
           shadeBlack: "#121212",
           white: "#FFFFFF",
-          auth:{
-            black: '#121212'
-
+          auth: {
+            black: '#0a1a2a'
           },
           gray: {
-            DEFAULT: "#B3B3B3",
-            dark: "#282828",
+            DEFAULT: "#888888",
+            dark: "#444444",
           },
         },
       },
