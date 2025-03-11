@@ -26,14 +26,18 @@
     <!-- Quick Access -->
     <section>
       <h2 class="text-2xl font-bold mb-6">Jump Back In</h2>
-      @if (recentPlaylists().length > 0)  {
+      @if (recentPlaylists().length > 0 && isLoading() == false)  {
         <app-playlist-list 
         [playlists]="recentPlaylists()"
         (play)="playPlaylist($event)"
         class="scrollbar-hide"
       ></app-playlist-list>
+      }@else if(isLoading() == true) {
+        <app-loading></app-loading>
       }@else {
-<app-loading></app-loading>
+        <div class="flex justify-center items-center">
+          <p class="text-xl text-spotify-lightGray">You haven't played any recent playlists yet.</p>
+        </div>
       }
 
     </section>
@@ -49,9 +53,12 @@
           [playlists]="personalizedPlaylists()"
           (play)="playPlaylist($event)"
         ></app-playlist-list>
-        }@else {
+        }@else if(isLoading() == true) {
   <app-loading></app-loading>
-        }
+        }@else {
+          <div class="flex justify-center items-center">
+            <p class="text-xl text-spotify-lightGray">You dont have any personalized playlists yet.</p>
+          </div>}
   
       </section>
      }
@@ -75,20 +82,7 @@
  
     </section>
 
-    <!-- Genre Grid -->
-    <!-- <section>
-      <h2 class="text-2xl font-bold mb-6">Genres & Moods</h2>
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        <div *ngFor="let genre of genres()" 
-             class="genre-card"
-             [style.background]="genre.color"
-             [routerLink]="['/genre', genre.id]">
-          <h3 class="text-xl font-bold z-10">{{ genre.name }}</h3>
-          <img [src]="genre.iconUrl" class="genre-icon">
-        </div>
-      </div>
-    </section> -->
-
+    
     <!-- Recently Played -->
      @if(recentTracks().length > 0) {
       <section>
